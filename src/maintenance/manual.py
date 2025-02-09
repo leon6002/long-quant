@@ -20,14 +20,14 @@ def update_stocks_data():
         logger.error("初始化股票基础数据失败, 未获取到数据，请检查tushare接口")
         return
     now = datetime.now()
-    
+
     def process_row(row):
         row['create_time'] = now
         row['_id'] = str(ObjectId())
         return row
-    
+
     df = df.apply(process_row,axis=1)
-    
+
     drop_collection(listed_stocks_collection)
     store_df_to_mongodb(df, listed_stocks_collection)
 

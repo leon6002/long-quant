@@ -1,45 +1,90 @@
-# AI选股
+# Long-Quant 项目
 
-## 项目目录结构
+## 项目简介
+
+本项目是一个用于量化分析的Python应用程序，旨在通过爬取金融数据并进行分析，帮助用户做出更明智的投资决策。
+
+## 目录结构
 
 ```python
-src/
-  __init__.py
-  config/
-    __init__.py
-    base.py      # 基础配置
-    db.py        # 数据库配置
-    ai.py        # AI服务配置
-
-  core/         # 核心业务逻辑
-    __init__.py
-    news.py     # 新闻处理
-    stock.py    # 股票分析
-    analysis.py # 数据分析
-
-  services/     # 外部服务接口
-    __init__.py
-    tushare.py  # Tushare API
-    tonghuashun.py # 同花顺API
-
-  utils/        # 工具函数
-    __init__.py
-    db_utils.py # 数据库工具
-    ai_utils.py # AI工具
-    common.py   # 通用工具
-
-  crawlers/     # 爬虫模块
-    __init__.py
-    eastmoney.py # 东方财富爬虫
-
-  models/       # 数据模型
-    __init__.py
-    stock.py    # 股票模型
-    news.py     # 新闻模型
-
-tests/          # 单元测试
-  __init__.py
-  test_core.py
-  test_services.py
-  test_utils.py
+.
+├── .gitignore
+├── LICENSE
+├── README.md
+├── requirements.txt
+├── myenv/
+├── src/
+│   ├── __init__.py
+│   ├── main.py
+│   ├── config/
+│   │   ├── __init__.py
+│   │   ├── ai.py
+│   │   ├── base.py
+│   │   └── db.py
+│   ├── core/
+│   │   ├── __init__.py
+│   │   ├── analysis.py
+│   │   └── news.py
+│   ├── crawlers/
+│   │   ├── __init__.py
+│   │   ├── eastmoney.py
+│   │   ├── tonghuashun.py
+│   │   └── js/
+│   │       └── wen.js
+│   ├── maintenance/
+│   │   └── manual.py
+│   ├── models/
+│   │   ├── __init__.py
+│   │   └── stock.py
+│   ├── services/
+│   │   ├── __init__.py
+│   │   ├── ai_service.py
+│   │   ├── news_service.py
+│   │   └── tushare.py
+│   └── utils/
+│       ├── __init__.py
+│       ├── common.py
+│       └── db_utils.py
+└── tests/
 ```
+
+## 安装指南
+
+1. 克隆本仓库：
+
+   ```bash
+   git clone https://github.com/yourusername/long-quant.git
+   ```
+
+2. 创建虚拟环境（可选）：
+
+   ```bash
+   python -m venv myenv
+   source myenv/bin/activate
+   ```
+
+3. 安装依赖项：
+
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+## 使用方法
+
+运行主程序：
+
+```bash
+python src/main.py
+```
+
+## 配置文件
+
+配置文件位于`src/config/`目录下，您可以根据需要修改相关配置。
+
+## 贡献
+
+欢迎贡献代码和提交问题。请确保您的代码符合项目的编码规范，并在提交前进行充分测试。
+
+## 许可证
+
+本项目采用MIT许可证。详情请参阅[LICENSE](LICENSE)文件。

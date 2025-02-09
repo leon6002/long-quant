@@ -2,8 +2,8 @@ import schedule
 import time
 from config.base import logger
 from core import main
-from services.news_service import stock_analyze_prompt  # 导入测试函数
-from core.manual import update_stocks_data
+from maintenance.manual import update_stocks_data
+from services.news_service import stock_analyze_prompt
 
 def job():
     logger.info("Scheduled job started")
