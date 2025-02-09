@@ -1,7 +1,7 @@
 from collections import defaultdict
 import re
 import pandas as pd
-from config.db import news_collection_name, db_name, listed_stocks_collection
+from config.db import news_collection_name, listed_stocks_collection
 from core.analysis import analyze_news
 from utils.db_utils import drop_collection, find_collection_data, store_df_to_mongodb, update_by_id
 from utils.common import process_news
@@ -18,7 +18,7 @@ def save_news_to_db(news_list):
         logger.info("news_list为空，没有新记录需要插入到MongoDB")
     news_list = process_news(news_list)
     # 保存新闻到数据库
-    return store_df_to_mongodb(pd.DataFrame(news_list), db_name, news_collection_name())
+    return store_df_to_mongodb(pd.DataFrame(news_list), news_collection_name())
 
 
 def ai_analysis(news_df: pd.DataFrame):
@@ -44,11 +44,11 @@ def ai_analysis(news_df: pd.DataFrame):
 
     news_df = news_df.apply(process_row,axis=1)
     # 根据_id字段将ai分析出来的数据更新到mongodb
-    update_by_id(news_df, db_name, news_collection_name())
+    update_by_id(news_df, news_collection_name())
 
 
 def combine_stocks_analysis(news_collection):
-    data = find_collection_data(db_name, news_collection)
+    data = find_collection_data(news_collection)
     if not data:
         return None
     # 获取指定数量的未处理文档
@@ -99,7 +99,7 @@ def stock_rank_data_integrate(rank_data: pd.DataFrame):
     if rank_data.empty:
         return pd.DataFrame()
     # 获取上市正常交易的股票基本信息列表
-    active_stocks = find_collection_data(db_name, listed_stocks_collection,
+    active_stocks = find_collection_data(listed_stocks_collection,
                                                  {},
                                                  {'_id': 0, 'name': 1, 'ts_code': 1})
     # 创建一个字典来存储股票名称和ts_code的映射
@@ -129,6 +129,6 @@ def stock_rank() -> None:
         logger.info("没有股票排名数据")
         return
     # 存储排名
-    drop_collection(db_name, rank_collection)
-    store_df_to_mongodb(integrated_rank_data, db_name,rank_collection)
+    drop_collection(rank_collection)
+    store_df_to_mongodb(integrated_rank_data,rank_collection)
     logger.info(f"已存储股票排名数据")

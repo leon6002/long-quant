@@ -1,4 +1,3 @@
-db_name = "long_quant"
 listed_stocks_collection = "listed_stocks"
 
 def news_collection_name():

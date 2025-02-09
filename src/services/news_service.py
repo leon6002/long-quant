@@ -1,9 +1,7 @@
 from bson import Regex
 import pandas as pd
-from config.db import db_name
 from utils.db_utils import find_collection_data
 from services.tushare import stock_daily_basic, stock_performance_combined
-from config.base import logger
 
 
 def get_stock_news(name):
@@ -12,7 +10,7 @@ def get_stock_news(name):
         "_id": 0,
         "title": 1,
     }
-    news_list = find_collection_data(db_name, 'news_0209', query, projection, 10)
+    news_list = find_collection_data('news_0209', query, projection, 10)
     df = pd.DataFrame(news_list)
     df = df.rename(columns={"title": '新闻标题',})
     result = df.to_markdown(index=False)

@@ -3,7 +3,7 @@ from pymongo import MongoClient, UpdateOne
 import pandas as pd
 from bson import ObjectId
 import logging
-
+from config.base import MONGODB_URI, MONGODB_NAME
 
 # 配置日志
 logging.basicConfig(level=logging.INFO)
@@ -12,24 +12,23 @@ logger = logging.getLogger(__name__)
 
 def get_client():
     """获取MongoDB客户端连接"""
-    return MongoClient('localhost', 27017)
+    return MongoClient(MONGODB_URI)
 
 
-def drop_collection(database_name, collection_name):
+def drop_collection(collection_name):
     with get_client() as client:
-        db = client[database_name]
+        db = client[MONGODB_NAME]
         collection = db[collection_name]
         collection.drop()
 
 
-def store_df_to_mongodb(df: pd.DataFrame, database_name: str, collection_name: str) -> pd.DataFrame:
+def store_df_to_mongodb(df: pd.DataFrame, collection_name: str) -> pd.DataFrame:
     """
     将DataFrame数据存储到MongoDB集合
     df可以没有"_id"字段，如果没有会自动生成一个
 
     Args:
         df: 要存储的DataFrame
-        database_name: 目标数据库名称
         collection_name: 目标集合名称
 
     Raises:
@@ -38,12 +37,12 @@ def store_df_to_mongodb(df: pd.DataFrame, database_name: str, collection_name: s
     # 参数验证
     if not isinstance(df, pd.DataFrame):
         raise TypeError("df参数必须是pandas DataFrame")
-    if not database_name or not collection_name:
+    if not collection_name:
         raise ValueError("数据库名和集合名不能为空")
 
     # 使用上下文管理器处理MongoDB连接
     with get_client() as client:
-        db = client[database_name]
+        db = client[MONGODB_NAME]
         collection = db[collection_name]
         records = df.to_dict('records')
         # 获取现有ID集合
@@ -70,19 +69,19 @@ def store_df_to_mongodb(df: pd.DataFrame, database_name: str, collection_name: s
     return df
 
 
-def find_collection_data(database_name, collection_name, query={}, selection={}, limit=0):
+def find_collection_data(collection_name, query={}, selection={}, limit=0):
     with get_client() as client:
-        db = client[database_name]
+        db = client[MONGODB_NAME]
         collection = db[collection_name]
         data = list(collection.find(query, selection).limit(limit))
         return data
 
 
-def update_by_id(df, database_name, collection_name):
+def update_by_id(df, collection_name):
     # 根据df中的_id字段更新mongodb中对应的数据
 
     with get_client() as client:
-        db = client[database_name]
+        db = client[MONGODB_NAME]
         collection = db[collection_name]
         try:
             # 将DataFrame转换为字典列表

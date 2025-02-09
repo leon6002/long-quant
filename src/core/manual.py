@@ -4,10 +4,12 @@ import pandas as pd
 from tqdm import tqdm
 from core.analysis import summary
 from utils.db_utils import drop_collection, find_collection_data, store_df_to_mongodb, update_by_id
-from services.tushare import get_stocks, stock_daily, stock_daily_basic
-from config.db import db_name, listed_stocks_collection, news_collection_name
-from config.base import logger
+from services.tushare import get_stocks, stock_daily_basic, stock_performance
+from config.db import listed_stocks_collection, news_collection_name
+import logging
 
+
+logger = logging.getLogger(__name__)
 
 def update_stocks_data():
     """
@@ -26,8 +28,8 @@ def update_stocks_data():
     
     df = df.apply(process_row,axis=1)
     
-    drop_collection(db_name, listed_stocks_collection)
-    store_df_to_mongodb(df, db_name, listed_stocks_collection)
+    drop_collection(listed_stocks_collection)
+    store_df_to_mongodb(df, listed_stocks_collection)
 
 
 def update_none_title(batch_size=5, max_retries=2):
@@ -41,7 +43,7 @@ def update_none_title(batch_size=5, max_retries=2):
                 ],
                 'content': {'$exists': True, '$ne': ''}  # 确保有内容可以生成标题
             }
-    news_to_update = find_collection_data(db_name, news_collection_name(), query, {}, batch_size)
+    news_to_update = find_collection_data(news_collection_name(), query, {}, batch_size)
     if not news_to_update:
         logger.info("没有需要更新标题的新闻")
         return
@@ -60,13 +62,13 @@ def update_none_title(batch_size=5, max_retries=2):
                 except Exception as e:
                     if attempt == max_retries - 1:
                         logger.error(f"为文档 {news_id} 生成标题失败: {str(e)}")
-    update_by_id(pd.DataFrame(news_to_update), db_name, news_collection_name())
+    update_by_id(pd.DataFrame(news_to_update), news_collection_name())
 
 
 def update_ranked_stock_price():
     stock_rank_collection = 'stock_rank_0208'
     trade_date = '20250207'
-    data = find_collection_data(db_name, stock_rank_collection)
+    data = find_collection_data(stock_rank_collection)
     if not data:
         logger.info(f"没有stock_rank数据，停止更新价格")
         return
@@ -74,10 +76,10 @@ def update_ranked_stock_price():
     # 取出df中所有的ts_code,组合成字符串，用逗号分隔
     ts_codes = ','.join(df['ts_code'].astype(str).tolist())
     # 调用tushare接口获取当日的股票价格信息
-    price_df = stock_daily(ts_codes=ts_codes, trade_date=trade_date)
+    price_df = stock_performance(ts_codes=ts_codes, trade_date=trade_date)
     stock_basic_df = stock_daily_basic(ts_codes=ts_codes, trade_date=trade_date)
     # 将price_df中的数据按照ts_code关联添加到df中
     df = pd.merge(df, price_df, on='ts_code', how='left')
     df = pd.merge(df, stock_basic_df, on='ts_code', how='left')
-    drop_collection(db_name, 'stock_rank_price_0208')
-    store_df_to_mongodb(df, db_name, 'stock_rank_price_0208')
+    drop_collection('stock_rank_price_0208')
+    store_df_to_mongodb(df, 'stock_rank_price_0208')

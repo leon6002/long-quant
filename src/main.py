@@ -3,7 +3,7 @@ import time
 from config.base import logger
 from core import main
 from services.news_service import stock_analyze_prompt  # 导入测试函数
-
+from core.manual import update_stocks_data
 
 def job():
     logger.info("Scheduled job started")
@@ -29,6 +29,9 @@ def tmp_test():
     prompt_result = stock_analyze_prompt(test_tick, test_name, test_trade_date)
     print("测试结果：\n", prompt_result)
 
-if __name__ == "__main__":
+def init_stock_info():
+    # 获取所有股票基础数据，存进mongodb
+    update_stocks_data()
 
+if __name__ == "__main__":
     start_job()
