@@ -1,0 +1,9 @@
+requests
+pydantic
+python-dotenv
+pandas
+tqdm
+pymongo
+tushare
+openai
+tabulate
