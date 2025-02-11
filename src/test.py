@@ -2,13 +2,14 @@ import pandas as pd
 from config.ai import ModelProvider
 from core.analysis import analyze_stock
 from core.news import stock_rank
+from crawlers.general import search_engine
 from crawlers.tonghuashun.main import fetch_investment_calendar, realtime_news
-from crawlers.tonghuashun_gui import myApp
+from crawlers.tonghuashun.tonghuashun import get_SSE_datas, get_favored_sectors, get_glamour_stocks
 from maintenance.init_action import init_stock_market_info
 from maintenance.manual import batch_analyze_ranked_stock
 from services.news_service import get_stock_news, stock_analyze_prompt
-from services.tushare import find_stock_name, get_last_trade_date, get_trade_date_range, stock_daily_basic, stock_performance, stock_price, trade_calendar
-from utils.common import get_date_range, parse_stock_suggesion
+from services.tushare import find_stock_name, get_last_trade_date, get_trade_date_range, realtime_quote, stock_daily_basic, stock_performance, stock_price, trade_calendar
+from utils.common import get_date_range, get_today, parse_stock_suggesion
 from utils.db_utils import drop_collection, find_collection_data, store_df_to_mongodb, update_by_id
 import logging
 
@@ -62,10 +63,44 @@ def update_ranked_stock_price():
 # rank_stocks = find_collection_data('stock_rank_0210',selection={'ts_code': 1, 'rating': 1})
 # print(rank_stocks)
 
-res = analyze_stock('600157.SH', ModelProvider.SILICONFLOW)
-print(res)
-
-# res = realtime_news(1)    
+# res = stock_analyze_prompt('002261.SZ')
+# # res = analyze_stock('600157.SH', ModelProvider.SILICONFLOW)
 # print(res)
 
-# fetch_investment_calendar()
+if 0:
+    pass
+
+if 0:
+    pass
+
+if 0:
+    pass
+
+if 0:
+    pass
+
+if 0:
+    pass
+
+if 0:
+    pass
+
+if 0:
+    data_strings = get_favored_sectors()
+
+    for i in range(1, len(data_strings)):
+            print("{:d}: {:s}".format(i, data_strings[i-1]))
+
+# 获取同花顺热门股票数据
+if 0:
+    data_strings = get_glamour_stocks()
+    total_rise = 0
+
+    for i in range (1, 10):
+            print("{:d}: {:s}\t {:4.1f}%".format(i, data_strings[i-1][0], data_strings[i-1][1]))
+            total_rise = total_rise +data_strings[i-1][1]
+    average = total_rise/9
+    if(average >= 0):
+            print("+{:4.1f} %".format(average))
+    else:
+            print("{:4.1f}%".format(average))
