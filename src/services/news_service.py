@@ -19,10 +19,10 @@ def search(name):
     search_results = search_engine(f'{name} {get_today()} 股票新闻 ')
     res = ''
     for index, item in enumerate(search_results):
-        res += f'cite_index: {index+1} \n'
-        res += f'标题：\n {item['title']} \n'
-        res += f'链接：{item['link']} \n'
-        res += f'内容：\n {item['content']} \n\n'
+        res += f"cite_index: {index+1} \n"
+        res += f"标题：\n {item['title']} \n"
+        res += f"链接：{item['link']} \n"
+        res += f"内容：\n {item['content']} \n\n"
     return res
 
 def stock_analyze_prompt(ts_code):
