@@ -16,3 +16,4 @@ trafilatura
 langchain-community
 duckduckgo-search
 chardet
+lxml_html_clean
