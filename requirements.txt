@@ -8,3 +8,11 @@ tushare
 openai
 tabulate
 schedule
+python-dateutil
+wxPython
+pyexecjs
+beautifulsoup4
+trafilatura
+langchain-community
+duckduckgo-search
+chardet

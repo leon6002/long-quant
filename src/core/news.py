@@ -128,6 +128,10 @@ def stock_rank() -> None:
     if integrated_rank_data.empty:
         logger.info("没有股票排名数据")
         return
+    # 整合基础信息
+    stock_list = integrated_rank_data['ts_code'].to_list()
+    listed_stocks = find_collection_data(listed_stocks_collection, query={'ts_code': {'$in': stock_list}}, selection={'industry': 1, 'ts_code': 1, '_id': 0, 'type': 1})
+    integrated_rank_data = pd.merge(integrated_rank_data, pd.DataFrame(listed_stocks), on='ts_code', how='inner')
     # 存储排名
     drop_collection(rank_collection)
     store_df_to_mongodb(integrated_rank_data,rank_collection)

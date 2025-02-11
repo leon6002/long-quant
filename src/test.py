@@ -1,0 +1,71 @@
+import pandas as pd
+from config.ai import ModelProvider
+from core.analysis import analyze_stock
+from core.news import stock_rank
+from crawlers.tonghuashun.main import fetch_investment_calendar, realtime_news
+from crawlers.tonghuashun_gui import myApp
+from maintenance.init_action import init_stock_market_info
+from maintenance.manual import batch_analyze_ranked_stock
+from services.news_service import get_stock_news, stock_analyze_prompt
+from services.tushare import find_stock_name, get_last_trade_date, get_trade_date_range, stock_daily_basic, stock_performance, stock_price, trade_calendar
+from utils.common import get_date_range, parse_stock_suggesion
+from utils.db_utils import drop_collection, find_collection_data, store_df_to_mongodb, update_by_id
+import logging
+
+logger = logging.getLogger(__name__)
+
+def copy_analyze():
+    list_old = find_collection_data('stock_rank_0210_s_01',{},{'_id':0, 'rating': 0, 'stock': 0})
+    list_new = find_collection_data('stock_rank_0210_s_02')
+    print(list_new[0])
+    df_old = pd.DataFrame(list_old)
+    df_new = pd.DataFrame(list_new)
+    df_new = pd.merge(df_new, df_old,  on="ts_code", how='inner')
+    update_by_id(df_new, "stock_rank_0210_s_02")
+
+def transfer():
+    drop_collection('stock_rank_0210_s_01')
+    data = find_collection_data('stock_rank_0210_s_02')
+    store_df_to_mongodb(pd.DataFrame(data), 'stock_rank_0210_s_01')
+    drop_collection('stock_rank_0210_s_02')
+
+
+
+def update_ranked_stock_price():
+    trade_date = get_last_trade_date()
+    trade_date = '20250210'
+    ts_codes = find_collection_data('stock_rank_0210')
+    if not ts_codes:
+        logger.info(f"没有stock_rank数据，停止更新价格")
+        return
+    df = pd.DataFrame(ts_codes)
+    # 取出df中所有的ts_code,组合成字符串，用逗号分隔
+    ts_codes = ','.join(df['ts_code'].astype(str).tolist())
+    # 调用tushare接口获取当日的股票价格信息
+    price_df = stock_performance(ts_codes=ts_codes, trade_date=trade_date)
+    if price_df.empty:
+        raise Exception(f"没有{trade_date}这天的股票数据")
+    stock_basic_df = stock_daily_basic(ts_codes=ts_codes, trade_date=trade_date)
+    if stock_basic_df.empty:
+        raise Exception(f"没有{trade_date}这天的基本面数据")
+    # 将price_df中的数据按照ts_code关联添加到df中
+    df = pd.merge(df, price_df, on='ts_code', how='inner')
+    df = pd.merge(df, stock_basic_df, on='ts_code', how='inner')
+    drop_collection('stock_rank_price_0210')
+    store_df_to_mongodb(df, 'stock_rank_price_0210')
+
+
+
+# update_ranked_stock_price()
+
+
+# rank_stocks = find_collection_data('stock_rank_0210',selection={'ts_code': 1, 'rating': 1})
+# print(rank_stocks)
+
+res = analyze_stock('600157.SH', ModelProvider.SILICONFLOW)
+print(res)
+
+# res = realtime_news(1)    
+# print(res)
+
+# fetch_investment_calendar()

@@ -3,6 +3,7 @@ import re
 import pandas as pd
 import hashlib
 from config.base import logger
+from dateutil.relativedelta import relativedelta
 
 
 def process_news(news_list):
@@ -123,6 +124,27 @@ def print_news_df(df):
     else:
         logger.info("没有新闻数据")
 
+def parse_stock_suggesion(text):
+    actions = []
+    reasons = []
+    lines = text.split('\n')
+    for line in lines:
+        line: str = line.strip()
+        if not line:
+            continue
+        if line.startswith('理由'):
+            reasons.append(line.replace('理由:', '').strip())
+        elif line.startswith('短期') or line.startswith('中期') or line.startswith('长期'):
+            actions.append(line.split(' ')[1].strip())
+        else:
+            continue
+    return {'short_term_action': actions[0],
+     'short_term_reason': reasons[0],
+     'medium_term_action': actions[1],
+     'medium_term_reason': reasons[1],
+     'long_term_action': actions[2],
+     'long_term_reason': reasons[2],
+    }
 
 def parse_result(result):
     """
@@ -200,3 +222,24 @@ def parse_result(result):
         'sectors': sector_result,
         'stocks': stock_result
     }
+
+def get_date_range(n: int=1):
+    """
+    获取最近n个月的开始结束日期
+    """
+    # 获取当前日期
+    today = datetime.today()
+
+    # 计算两个月前的日期
+    two_months_ago = today - relativedelta(months=n)
+
+    # 格式化日期为字符串形式 YYYYMMDD
+    start_date = two_months_ago.strftime('%Y%m%d')
+    end_date = today.strftime('%Y%m%d')
+
+    # 返回结果元组
+    return (start_date, end_date)
+
+def get_today():
+    today = datetime.today()
+    return today.strftime('%Y年%m月%d日')

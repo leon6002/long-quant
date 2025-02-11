@@ -1,9 +1,13 @@
 import re
 from typing import Dict, Any
 from services.ai_service import ai_chat
-from utils.common import parse_result
+from services.news_service import stock_analyze_prompt
+from utils.common import parse_result, parse_stock_suggesion
 from config.ai import DEFAULT_MODEL_PROVIDER, ModelProvider
+import logging
 
+
+logger = logging.getLogger(__name__)
 
 def analyze_news(
     title: str,
@@ -57,7 +61,12 @@ def analyze_news(
     res_text = re.sub(r'<think>.*?</think>', '', res_text, flags=re.DOTALL)
     return parse_result(res_text)
 
-
+def analyze_stock(ts_code, provider: ModelProvider):
+    prompt = stock_analyze_prompt(ts_code)
+    res_text = ai_chat(prompt, provider=provider)
+    res_text = re.sub(r'<think>.*?</think>', '', res_text, flags=re.DOTALL)
+    logger.info(res_text)
+    return (prompt, parse_stock_suggesion(res_text))
 
 def summary(content: str) -> str:
     """

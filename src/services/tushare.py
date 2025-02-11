@@ -1,15 +1,19 @@
+from datetime import datetime
 import logging
 import tushare as ts
 import pandas as pd
 from tqdm import tqdm
 from config.base import TUSHARE_TOKEN
+from config.db import listed_stocks_collection
+from utils.common import get_date_range
+from utils.db_utils import find_collection_data
 logger = logging.getLogger(__name__)
 
 news_src = ["sina", "wallstreetcn", "10jqka", "eastmoney", "yuncaijing", "fenghuang", "jinrongjie"]
 
+ts.set_token(TUSHARE_TOKEN)
 
 def get_client():
-    ts.set_token(TUSHARE_TOKEN)
     pro = ts.pro_api()
     return pro
 
@@ -40,18 +44,71 @@ def get_stocks():
     return data
 
 
-def realtime_quote(ts_code):
+def realtime_quote(ts_code: str, column_map: bool=False) -> pd.DataFrame:
     df = ts.realtime_quote(ts_code=ts_code, src='dc')
+    column_mapping = {
+        'name': '股票名称',
+        'ts_code': '股票代码',
+        'date': '交易日期',
+        'time': '交易时间',
+        'open': '开盘价',
+        'pre_close': '昨收价',
+        'price': '现价',
+        'high': '今日最高价',
+        'low': '今日最低价',
+        'bid': '竞买价',
+        'ask': '竞卖价',
+        'volume': '成交量',
+        'amount': '成交金额',
+        'b1_v': '委买一（量）',
+        'b1_p': '委买一（价）',
+        'b2_v': '委买二（量）',
+        'b2_p': '委买二（价）',
+        'b3_v': '委买三（量）',
+        'b3_p': '委买三（价）',
+        'b4_v': '委买四（量）',
+        'b4_p': '委买四（价）',
+        'b5_v': '委买五（量）',
+        'b5_p': '委买五（价）',
+        'a1_v': '委卖一（量）',
+        'a1_p': '委卖一（价）',
+        'a2_v': '委卖二（量）',
+        'a2_p': '委卖二（价）',
+        'a3_v': '委卖三（量）',
+        'a3_p': '委卖三（价）',
+        'a4_v': '委卖四（量）',
+        'a4_p': '委卖四（价）',
+        'a5_v': '委卖五（量）',
+        'a5_p': '委卖五（价）'
+    }
+    if column_map:
+        df.columns = [col.lower() for col in df.columns]
+        df.rename(columns=column_mapping, inplace=True)
     return df
 
 
-def stock_price(ts_code, time_range):
-    ts.set_token(TUSHARE_TOKEN)
-    df = ts.pro_bar(ts_code=ts_code, asset="E", start_date=time_range[0], end_date=time_range[1], freq='5min')
+def stock_price(ts_code, time_range, freq, column_map=False) -> pd.DataFrame:
+    logger.info(f'stock_price time_range: {time_range}')
+    df: pd.DataFrame = ts.pro_bar(ts_code=ts_code, asset="E", start_date=time_range[0], end_date=time_range[1], freq=freq)
+    column_mapping = {
+        'ts_code': '股票代码',
+        'trade_date': '交易日期',
+        'open': '开盘价',
+        'high': '最高价',
+        'low': '最低价',
+        'close': '收盘价',
+        'pre_close': '昨收价',
+        'change': '涨跌额',
+        'pct_chg': '涨跌幅',
+        'vol': '成交量 （手）',
+        'amount': '成交额 （千元）'
+    }
+    if column_map:
+        df = df.rename(columns=column_mapping)
     return df
 
 
-def stock_performance(ts_codes: str, trade_date: str, period: str='D') -> pd.DataFrame:
+def stock_performance(ts_codes: str, trade_date: str, period: str='D', column_rename=False) -> pd.DataFrame:
     """
     Args:
     ts_codes: 股票代码，多个以逗号隔开，比如：'002594.SZ,000977.SZ,002475.SZ'
@@ -90,11 +147,12 @@ def stock_performance(ts_codes: str, trade_date: str, period: str='D') -> pd.Dat
         'vol': '成交量 （手）',
         'amount': '成交额 （千元）'
     }
-    # df.rename(columns=column_mapping, inplace=True)
+    if column_rename:
+        df.rename(columns=column_mapping, inplace=True)
     return df
 
 
-def stock_daily_basic(ts_codes, trade_date):
+def stock_daily_basic(ts_codes, trade_date, column_rename=False):
     """
     获取股票每日基本面数据
     | 名称            | 类型   | 描述
@@ -142,11 +200,12 @@ def stock_daily_basic(ts_codes, trade_date):
         'total_mv': '总市值  （万元）',
         'circ_mv': '流通市值（万元）'
     }
-    df.rename(columns=column_mapping, inplace=True)
+    if column_rename:
+        df.rename(columns=column_mapping, inplace=True)
     return df
 
 
-def trade_calendar(time_range, exchange=''):
+def trade_calendar(time_range: tuple, exchange: str=''):
     """
         名称       | 类型   | 默认显示   | 描述
     --------------|--------|----------|-------------------------
@@ -159,63 +218,22 @@ def trade_calendar(time_range, exchange=''):
     df = pro.trade_cal(exchange=exchange, start_date=time_range[0], end_date=time_range[1])
     return df
 
+def get_trade_date_range(n: int=1) -> tuple:
+    """
+    获取最近n个股市交易日期的起始日期和截止日期
+    """
+    df_calendar = trade_calendar(get_date_range(n//20 + 1))
+    df_calendar = df_calendar[df_calendar['is_open']==1]
+    df_calendar = df_calendar.head(n)
+    return (df_calendar.iloc[-1]['cal_date'], df_calendar.iloc[0]['cal_date'])
 
-def calculate_period_last_trade_date():
-    df = trade_calendar(('20250125', '20250208'))
-    # print(df.to_markdown())
-    # 过滤出所有交易日
-    df_trading = df[df['is_open'] == 1].copy()
+def get_last_trade_date() -> str:
+    df_calendar = trade_calendar(get_date_range())
+    return df_calendar.iloc[0]['pretrade_date']
 
-    # 将 cal_date 转换为 datetime 类型
-    df_trading['cal_date'] = pd.to_datetime(df_trading['cal_date'], format='%Y%m%d')
-
-    # 计算 ISO 年份和周数
-    iso_calendar = df_trading['cal_date'].dt.isocalendar()
-    df_trading['iso_year'] = iso_calendar.year
-    df_trading['iso_week'] = iso_calendar.week
-
-    # 按 ISO 年份和周分组，找到每周的最后交易日
-    weekly_last = df_trading.groupby(['iso_year', 'iso_week'])['cal_date'].max().reset_index()
-
-    # 按日期降序排序，获取最近的周
-    weekly_last_sorted = weekly_last.sort_values('cal_date', ascending=False)
-
-    # 提取本周和上周的最后一个交易日
-    current_week_last = weekly_last_sorted.iloc[0]['cal_date']
-    last_week_last = weekly_last_sorted.iloc[1]['cal_date']
-
-    # 格式化为字符串
-    current_week_last_str = current_week_last.strftime('%Y%m%d')
-    last_week_last_str = last_week_last.strftime('%Y%m%d')
-
-    print(f"本周最后一个交易日: {current_week_last_str}")
-    print(f"上周最后一个交易日: {last_week_last_str}")
-
-
-def stock_performance_combined(ts_code, name, trade_date):
-    df_daily = stock_performance(ts_code, trade_date, 'D')
-    df_daily['period'] = '日线'
-    df_weekly = stock_performance(ts_code, trade_date, 'W')
-    df_weekly['period'] = '周线'
-    df_monthly = stock_performance(ts_code, trade_date, 'M')
-    df_monthly['period'] = '月线'
-    # 合并三个df
-    df_combined = pd.concat([df_daily, df_weekly, df_monthly], ignore_index=True)
-    df_combined['name'] = name
-    column_mapping = {
-        'ts_code': '股票代码',
-        'trade_date': '交易日期',
-        'open': '开盘价',
-        'high': '最高价',
-        'low': '最低价',
-        'close': '收盘价',
-        'pre_close': '昨收价【除权价，前复权】',
-        'change': '涨跌额',
-        'pct_chg': '涨跌幅(除权后)',
-        'vol': '成交量 （手）',
-        'amount': '成交额 （千元）',
-        'period': '数据周期',
-        'name': '股票名称'
-    }
-    df_combined.rename(columns=column_mapping, inplace=True)
-    return df_combined
+def find_stock_name(ts_code: str) -> str | None:
+    df_name = find_collection_data(listed_stocks_collection, {'ts_code': ts_code}, {'_id': 0, 'name': 1})
+    if len(df_name) == 0:
+        return None
+    name = df_name[0]['name']
+    return name
