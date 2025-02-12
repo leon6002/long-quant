@@ -7,11 +7,13 @@ from crawlers.tonghuashun.main import fetch_investment_calendar, realtime_news
 from crawlers.tonghuashun.tonghuashun import get_SSE_datas, get_favored_sectors, get_glamour_stocks
 from maintenance.init_action import init_stock_market_info
 from maintenance.manual import batch_analyze_ranked_stock
+from services.ai_service import ai_search
 from services.news_service import get_stock_news, stock_analyze_prompt
 from services.tushare import find_stock_name, get_last_trade_date, get_trade_date_range, realtime_quote, stock_daily_basic, stock_performance, stock_price, trade_calendar
 from utils.common import get_date_range, get_today, parse_stock_suggesion
 from utils.db_utils import drop_collection, find_collection_data, store_df_to_mongodb, update_by_id
 import logging
+from pprint import pprint
 
 logger = logging.getLogger(__name__)
 
@@ -33,9 +35,10 @@ def transfer():
 
 
 def update_ranked_stock_price():
-    trade_date = get_last_trade_date()
-    trade_date = '20250210'
-    ts_codes = find_collection_data('stock_rank_0210')
+    # trade_date = get_last_trade_date()
+    date = '0211'
+    trade_date = f'2025{date}'
+    ts_codes = find_collection_data(f'stock_rank_{date}')
     if not ts_codes:
         logger.info(f"没有stock_rank数据，停止更新价格")
         return
@@ -52,12 +55,12 @@ def update_ranked_stock_price():
     # 将price_df中的数据按照ts_code关联添加到df中
     df = pd.merge(df, price_df, on='ts_code', how='inner')
     df = pd.merge(df, stock_basic_df, on='ts_code', how='inner')
-    drop_collection('stock_rank_price_0210')
-    store_df_to_mongodb(df, 'stock_rank_price_0210')
+    drop_collection(f'stock_rank_price_{date}')
+    store_df_to_mongodb(df, f'stock_rank_price_{date}')
 
 
 
-# update_ranked_stock_price()
+
 
 
 # rank_stocks = find_collection_data('stock_rank_0210',selection={'ts_code': 1, 'rating': 1})
@@ -68,22 +71,11 @@ def update_ranked_stock_price():
 # print(res)
 
 if 0:
-    pass
+    update_ranked_stock_price()
 
 if 0:
-    pass
+    find_collection_data('stock_rank_price_0211', selection={})
 
-if 0:
-    pass
-
-if 0:
-    pass
-
-if 0:
-    pass
-
-if 0:
-    pass
 
 if 0:
     data_strings = get_favored_sectors()
@@ -104,3 +96,12 @@ if 0:
             print("+{:4.1f} %".format(average))
     else:
             print("{:4.1f}%".format(average))
+
+if 1:
+
+    res = ai_search("优刻得-W(SH:688158)这只股票怎么样，明天可以买吗?")
+
+    print(res)
+
+if 0:
+    pass

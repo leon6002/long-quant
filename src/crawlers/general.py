@@ -10,11 +10,11 @@ def extract_text_with_trafilatura(url):
     text = trafilatura.extract(html, include_links=False, include_tables=False)
     return text
 
-def search_engine(query):
+def search_engine(query, num_results=5) -> list:
     """
     duckduckgo搜素, 然后对每个url进行正文爬取
     """
-    search = DuckDuckGoSearchResults(output_format="list", num_results=5)
+    search = DuckDuckGoSearchResults(output_format="list", num_results=num_results)
     results = search.invoke(query)
     for index, result in enumerate(results):
         if 'link' in result:
