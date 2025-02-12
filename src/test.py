@@ -1,3 +1,4 @@
+from datetime import datetime
 import pandas as pd
 from config.ai import ModelProvider
 from core.analysis import analyze_stock
@@ -98,10 +99,18 @@ if 0:
             print("{:4.1f}%".format(average))
 
 if 1:
-
-    res = ai_search("优刻得-W(SH:688158)这只股票怎么样，明天可以买吗?")
-
-    print(res)
+    query = "云计算领域有哪些个股，龙头股是谁？"
+    res = ai_search(query)
+    time = datetime.now()
+    time_str = time.strftime('%m%d')
+    filename = f'q_{query[:4]}_{time_str}.md'
+    save_path = f'/Users/cgl/Library/Mobile Documents/iCloud~md~obsidian/Documents/md/ask_ai/{filename}'
+    content = f'# {query[:10]}'
+    content += '\n\n'
+    content += f'问：{query}\n\n'
+    content += res
+    with open(save_path, "w") as f:
+         f.write(content)
 
 if 0:
     pass
