@@ -243,3 +243,7 @@ def get_date_range(n: int=1):
 def get_today():
     today = datetime.today()
     return today.strftime('%Y年%m月%d日')
+
+def time_now(format: str='%Y-%m-%d %H:%M:%S') -> str:
+    now = datetime.now()
+    return now.strftime(format)

@@ -1,17 +1,18 @@
 from datetime import datetime
+import re
 import pandas as pd
 from config.ai import ModelProvider
-from core.analysis import analyze_stock
-from core.news import stock_rank
+from core.analysis import analyze_stock, analyze_stock_no_parse
+from core.news import stock_rank, update_ranked_stock_price
 from crawlers.general import search_engine
 from crawlers.tonghuashun.main import fetch_investment_calendar, realtime_news
 from crawlers.tonghuashun.tonghuashun import get_SSE_datas, get_favored_sectors, get_glamour_stocks
 from maintenance.init_action import init_stock_market_info
 from maintenance.manual import batch_analyze_ranked_stock
-from services.ai_service import ai_search
+from services.ai_service import ai_search, cite_update
 from services.news_service import get_stock_news, stock_analyze_prompt
 from services.tushare import find_stock_name, get_last_trade_date, get_trade_date_range, realtime_quote, stock_daily_basic, stock_performance, stock_price, trade_calendar
-from utils.common import get_date_range, get_today, parse_stock_suggesion
+from utils.common import get_date_range, get_today, parse_stock_suggesion, time_now
 from utils.db_utils import drop_collection, find_collection_data, store_df_to_mongodb, update_by_id
 import logging
 from pprint import pprint
@@ -35,29 +36,7 @@ def transfer():
 
 
 
-def update_ranked_stock_price():
-    # trade_date = get_last_trade_date()
-    date = '0211'
-    trade_date = f'2025{date}'
-    ts_codes = find_collection_data(f'stock_rank_{date}')
-    if not ts_codes:
-        logger.info(f"没有stock_rank数据，停止更新价格")
-        return
-    df = pd.DataFrame(ts_codes)
-    # 取出df中所有的ts_code,组合成字符串，用逗号分隔
-    ts_codes = ','.join(df['ts_code'].astype(str).tolist())
-    # 调用tushare接口获取当日的股票价格信息
-    price_df = stock_performance(ts_codes=ts_codes, trade_date=trade_date)
-    if price_df.empty:
-        raise Exception(f"没有{trade_date}这天的股票数据")
-    stock_basic_df = stock_daily_basic(ts_codes=ts_codes, trade_date=trade_date)
-    if stock_basic_df.empty:
-        raise Exception(f"没有{trade_date}这天的基本面数据")
-    # 将price_df中的数据按照ts_code关联添加到df中
-    df = pd.merge(df, price_df, on='ts_code', how='inner')
-    df = pd.merge(df, stock_basic_df, on='ts_code', how='inner')
-    drop_collection(f'stock_rank_price_{date}')
-    store_df_to_mongodb(df, f'stock_rank_price_{date}')
+
 
 
 
@@ -72,7 +51,9 @@ def update_ranked_stock_price():
 # print(res)
 
 if 0:
-    update_ranked_stock_price()
+    # 用交易日前一天的新闻验证当天的股价
+    # 新闻表格当天应该收录的是前一天15:00到当天15:00的新闻
+    update_ranked_stock_price('20250211', '20250212')
 
 if 0:
     find_collection_data('stock_rank_price_0211', selection={})
@@ -98,19 +79,28 @@ if 0:
     else:
             print("{:4.1f}%".format(average))
 
-if 1:
-    query = "云计算领域有哪些个股，龙头股是谁？"
-    res = ai_search(query)
-    time = datetime.now()
-    time_str = time.strftime('%m%d')
-    filename = f'q_{query[:4]}_{time_str}.md'
-    save_path = f'/Users/cgl/Library/Mobile Documents/iCloud~md~obsidian/Documents/md/ask_ai/{filename}'
-    content = f'# {query[:10]}'
-    content += '\n\n'
-    content += f'问：{query}\n\n'
-    content += res
-    with open(save_path, "w") as f:
-         f.write(content)
-
 if 0:
-    pass
+    query = "fen"
+    res_json = ai_search(query)
+    time = datetime.now()
+    time_str = time.strftime('%m%d_%H%M')
+    filename = f'{query[:8]}_{time_str}.md'
+    save_path = f'/Users/cgl/Library/Mobile Documents/iCloud~md~obsidian/Documents/md/ask_ai/ai_search/{filename}'
+    save_content = f"**问题：** {res_json['query']}\n\n"
+    save_content += f"{res_json['answer']}"
+    with open(save_path, "w") as f:
+         f.write(save_content)
+    logger.info("AI搜索分析结束，文件已保存")
+
+if 1:
+    ts_code= '600728.SH'
+    prompt, suggestion=analyze_stock_no_parse(ts_code)
+    filename = f'stock_{ts_code[:6]}_{time_now('%m%d_%H%M')}.md'
+    save_path = f'/Users/cgl/Library/Mobile Documents/iCloud~md~obsidian/Documents/md/ask_ai/stock_analyze/{filename}'
+    save_content = f'# 个股分析：{ts_code}'
+    save_content += '\n\n'
+    save_content += suggestion
+    save_content += '\n\n**提问词：**\n'
+    save_content += prompt
+    with open(save_path, "w") as f:
+         f.write(save_content)

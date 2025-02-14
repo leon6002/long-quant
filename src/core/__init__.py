@@ -12,3 +12,6 @@ def main():
     ai_analysis(news_df)
     # 更新股票排名
     stock_rank()
+
+def update_price():
+    pass

@@ -61,12 +61,26 @@ def analyze_news(
     res_text = re.sub(r'<think>.*?</think>', '', res_text, flags=re.DOTALL)
     return parse_result(res_text)
 
-def analyze_stock(ts_code, provider: ModelProvider):
+def analyze_stock(ts_code, provider: ModelProvider=ModelProvider.SILICONFLOW):
+    '''
+    根据股票数据分析具体一只股票
+    
+    '''
+    prompt, res_text = analyze_stock_no_parse(ts_code, provider)
+    return (prompt, parse_stock_suggesion(res_text))
+    
+
+
+def analyze_stock_no_parse(ts_code, provider: ModelProvider=ModelProvider.SILICONFLOW):
+    '''
+    根据股票数据分析具体一只股票
+    
+    '''
     prompt = stock_analyze_prompt(ts_code)
     res_text = ai_chat(prompt, provider=provider)
     res_text = re.sub(r'<think>.*?</think>', '', res_text, flags=re.DOTALL)
     logger.info(res_text)
-    return (prompt, parse_stock_suggesion(res_text))
+    return (prompt, res_text)
 
 def summary(content: str) -> str:
     """

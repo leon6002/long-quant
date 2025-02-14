@@ -38,7 +38,7 @@ def stock_analyze_prompt(ts_code):
     df_news = df_news.rename(columns={"title": '新闻标题', 'content': '新闻内容'})
     prompt = '根据下面的股票数据和新闻，分析一下投资建议，严格按照给定的格式给出结论：\n\n'
     prompt += f'股票名称： {name}({ts_code})\n\n'
-    prompt += f'股票当前实时数据：\n'
+    prompt += f'股票当前实时数据：\n\n'
     prompt += df_realtime.to_markdown(index=False)
     prompt += '\n\n'
     prompt += '股票最近一个交易日基本面数据：\n\n'
@@ -53,7 +53,7 @@ def stock_analyze_prompt(ts_code):
     prompt += '最近几天相关的新闻：\n\n'
     prompt += df_news.to_markdown(index=False)
     prompt += '\n\n'
-    prompt += '网页搜索相关信息：\n\n'
+    prompt += '网页搜索相关信息（请根据新闻的时效性权衡）：\n\n'
     prompt += search(name)
     prompt += '\n\n'
     prompt += '给出的结论格式：\n短期: <买入、观望或者卖出>\n理由: <理由>\n中期: <买入、观望或者卖出>\n理由: <理由>\n长期: <买入、观望或者卖出>\n理由: <理由>'

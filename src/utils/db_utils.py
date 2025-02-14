@@ -60,11 +60,11 @@ def store_df_to_mongodb(df: pd.DataFrame, collection_name: str) -> pd.DataFrame:
         if bulk_ops:
             try:
                 result = collection.bulk_write(bulk_ops, ordered=False)
-                logger.info(f"成功插入 {result.inserted_count} 条记录到 MongoDB")
+                logger.info(f"成功插入 {result.inserted_count} 条记录到 MongoDB: {collection_name}")
             except pymongo.errors.BulkWriteError as bwe:
                 logger.error(f"批量写入错误: {bwe.details}")
         else:
-            logger.info("没有新记录需要插入到MongoDB")
+            logger.info("没有新记录需要插入到MongoDB: {collection_name}")
         df = pd.DataFrame(inserted_records)
     return df
 

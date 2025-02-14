@@ -3,8 +3,9 @@ import re
 import pandas as pd
 from config.db import news_collection_name, listed_stocks_collection
 from core.analysis import analyze_news
+from services.tushare import get_last_trade_date, stock_daily_basic, stock_performance
 from utils.db_utils import drop_collection, find_collection_data, store_df_to_mongodb, update_by_id
-from utils.common import process_news
+from utils.common import process_news, time_now
 import logging
 
 
@@ -136,3 +137,29 @@ def stock_rank() -> None:
     drop_collection(rank_collection)
     store_df_to_mongodb(integrated_rank_data,rank_collection)
     logger.info(f"已存储股票排名数据")
+
+def update_ranked_stock_price(news_date, trade_date):
+    """
+    更新昨日价格
+    """
+    # date = time_now('%m%d')
+    # trade_date = f'2025{date}'
+    ts_codes = find_collection_data(f'stock_rank_{news_date[4:]}')
+    if not ts_codes:
+        logger.info(f"没有stock_rank数据，停止更新价格")
+        return
+    df = pd.DataFrame(ts_codes)
+    # 取出df中所有的ts_code,组合成字符串，用逗号分隔
+    ts_codes = ','.join(df['ts_code'].astype(str).tolist())
+    # 调用tushare接口获取当日的股票价格信息
+    price_df = stock_performance(ts_codes=ts_codes, trade_date=trade_date)
+    if price_df.empty:
+        raise Exception(f"没有{trade_date}这天的股票数据")
+    stock_basic_df = stock_daily_basic(ts_codes=ts_codes, trade_date=trade_date)
+    if stock_basic_df.empty:
+        raise Exception(f"没有{trade_date}这天的基本面数据")
+    # 将price_df中的数据按照ts_code关联添加到df中
+    df = pd.merge(df, price_df, on='ts_code', how='inner')
+    df = pd.merge(df, stock_basic_df, on='ts_code', how='inner')
+    drop_collection(f'stock_rank_price_{trade_date[4:]}')
+    store_df_to_mongodb(df, f'stock_rank_price_{trade_date[4:]}')
