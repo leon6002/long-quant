@@ -110,7 +110,7 @@ def add_reference(text: str, reference_list: list) -> str:
     text += references
     return text
 
-def ai_search(query: str, num_keyword: int=2, num_result: int=5):
+def ai_search(query: str, num_keyword: int=2, num_result: int=3):
     '''
     基于AI增强的搜索引擎问答系统
 

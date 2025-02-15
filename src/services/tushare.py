@@ -237,3 +237,10 @@ def find_stock_name(ts_code: str) -> str | None:
         return None
     name = df_name[0]['name']
     return name
+
+def find_stock_code(name: str) -> str | None:
+    df_name = find_collection_data(listed_stocks_collection,  {'name': name}, {'_id': 0, 'ts_code': 1})
+    if len(df_name) == 0:
+        return None
+    code = df_name[0]['ts_code']
+    return code

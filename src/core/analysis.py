@@ -77,6 +77,8 @@ def analyze_stock_no_parse(ts_code, provider: ModelProvider=ModelProvider.SILICO
     
     '''
     prompt = stock_analyze_prompt(ts_code)
+    if prompt is None:
+        raise ValueError(f"ts_code不正确: {ts_code}")
     res_text = ai_chat(prompt, provider=provider)
     res_text = re.sub(r'<think>.*?</think>', '', res_text, flags=re.DOTALL)
     logger.info(res_text)
