@@ -1,9 +1,11 @@
 from collections import defaultdict
+from datetime import datetime
 import re
 import pandas as pd
-from config.db import news_collection_name, listed_stocks_collection
+from tqdm import tqdm
+from config.db import listed_stocks_collection
 from core.analysis import analyze_news
-from services.tushare import get_last_trade_date, stock_daily_basic, stock_performance
+from services.tushare import get_last_trade_date, news_collection_name, stock_daily_basic, stock_performance
 from utils.db_utils import drop_collection, find_collection_data, store_df_to_mongodb, update_by_id
 from utils.common import process_news, time_now
 import logging
@@ -11,18 +13,29 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-def save_news_to_db(news_list):
+def save_news_to_db(news_list) -> None:
     """
     将新闻存进数据库
     """
     if not news_list:
         logger.info("news_list为空，没有新记录需要插入到MongoDB")
     news_list = process_news(news_list)
-    # 保存新闻到数据库
-    return store_df_to_mongodb(pd.DataFrame(news_list), news_collection_name())
+    groups = {}
+    dfs = {}
+    # 新闻所影响的交易日
+    for news in tqdm(news_list):
+        if news:
+            name = news_collection_name(news['datetime'])
+            if name not in groups.keys():
+                groups[name] = [news]
+            else:
+                groups[name].append(news)
+    for k, v in groups.items():
+        dfs[k] = store_df_to_mongodb(pd.DataFrame(v), k)
+    return dfs
 
 
-def ai_analysis(news_df: pd.DataFrame):
+def ai_analysis(collection: str, news_df: pd.DataFrame) -> None:
     """
     对新闻进行ai分析，并将结果保存到mongodb
 
@@ -45,7 +58,7 @@ def ai_analysis(news_df: pd.DataFrame):
 
     news_df = news_df.apply(process_row,axis=1)
     # 根据_id字段将ai分析出来的数据更新到mongodb
-    update_by_id(news_df, news_collection_name())
+    update_by_id(news_df, collection)
 
 
 def combine_stocks_analysis(news_collection):
@@ -121,6 +134,7 @@ def stock_rank_data_integrate(rank_data: pd.DataFrame):
 
 
 def stock_rank() -> None:
+    logger.info('开始股票排名')
     news_collection = news_collection_name()
     rank_collection = news_collection.replace('news_', 'stock_rank_')
     # 计算股票排名

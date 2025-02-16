@@ -223,22 +223,24 @@ def parse_result(result):
         'stocks': stock_result
     }
 
-def get_date_range(n: int=1):
+def get_date_range(n: int=1, date: datetime=None):
     """
     获取最近n个月的开始结束日期
     """
     # 获取当前日期
-    today = datetime.today()
+    date = datetime.today() if date is None else date
 
     # 计算两个月前的日期
-    two_months_ago = today - relativedelta(months=n)
+    two_months_ago = date - relativedelta(months=n)
 
     # 格式化日期为字符串形式 YYYYMMDD
     start_date = two_months_ago.strftime('%Y%m%d')
-    end_date = today.strftime('%Y%m%d')
+    end_date = date.strftime('%Y%m%d')
 
     # 返回结果元组
     return (start_date, end_date)
+
+
 
 def get_today():
     today = datetime.today()

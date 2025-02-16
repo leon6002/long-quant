@@ -169,10 +169,12 @@ def ai_search(query: str, num_keyword: int=2, num_result: int=3):
     return_json = {'query': query, 'search_result': [], 'answer': ''}
     search_results = []
     for index, keyword in enumerate(keywords):
+        keyword: str = keyword.strip()
         logger.info(f'搜索关键词： {keyword}')
-        result_list = search_engine(keyword, num_result)
-        return_json['search_result'].append({'index': index, 'keyword': keyword, 'results': result_list})
-        search_results += result_list
+        if keyword:
+            result_list = search_engine(keyword, num_result)
+            return_json['search_result'].append({'index': index, 'keyword': keyword, 'results': result_list})
+            search_results += result_list
     unique_results = search_result_clean(search_results)
     final_prompt = f'''现在时间是：{time_str}，请结合下面给出的网页搜索结果（注意权衡新闻的时效性），回答一下用户的问题。
     如果引用了搜索结果，请在引用的地方标注来源cite_index,比如[^1][^2]， 注意无需在尾部添加来源。

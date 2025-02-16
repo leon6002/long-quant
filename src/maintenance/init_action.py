@@ -4,8 +4,8 @@ import pandas as pd
 from tqdm import tqdm
 from core.analysis import summary
 from utils.db_utils import drop_collection, find_collection_data, store_df_to_mongodb, update_by_id
-from services.tushare import get_stocks
-from config.db import listed_stocks_collection, news_collection_name
+from services.tushare import get_stocks, news_collection_name
+from config.db import listed_stocks_collection
 import logging
 
 logger = logging.getLogger(__name__)

@@ -231,6 +231,24 @@ def get_last_trade_date() -> str:
     df_calendar = trade_calendar(get_date_range())
     return df_calendar.iloc[0]['pretrade_date']
 
+def is_today_open():
+    df_calendar = trade_calendar(get_date_range())
+    return df_calendar.iloc[0]['is_open']
+
+def is_date_open(date: str):
+    df_calendar = trade_calendar((date, date))
+    return df_calendar.iloc[0]['is_open'] == 1
+
+def get_next_trade_date(given_date: datetime):
+    reverse_range = get_date_range(-1, given_date)
+    df_calendar = trade_calendar((reverse_range[1], reverse_range[0]))
+    df_calendar = df_calendar[df_calendar['is_open']==1]
+    if df_calendar.iloc[-1]['cal_date'] == given_date.strftime('%Y%m%d'):
+        return df_calendar.iloc[-2]['cal_date']
+    else:
+        return df_calendar.iloc[-1]['cal_date']
+
+
 def find_stock_name(ts_code: str) -> str | None:
     df_name = find_collection_data(listed_stocks_collection, {'ts_code': ts_code}, {'_id': 0, 'name': 1})
     if len(df_name) == 0:
@@ -244,3 +262,34 @@ def find_stock_code(name: str) -> str | None:
         return None
     code = df_name[0]['ts_code']
     return code
+
+
+def news_trade_date():
+    now = datetime.now().time()
+    market_close_time = datetime.strptime("14:00", "%H:%M").time()
+    if is_today_open() == 1 and now < market_close_time:
+        # 在下午三点之前，取最近的交易日期
+        return get_trade_date_range(1)[1]
+    else:
+        return get_next_trade_date()
+
+def trade_date_by_given_date(given_date: datetime):
+    date_str = given_date.strftime("%Y%m%d")
+    given_time = given_date.time()
+    # 这里取下午2:50， 因为一般最后10分钟的新闻不大可能在3:00前反应在股市上
+    market_close_time = datetime.strptime("14:50", "%H:%M").time()
+    if is_date_open(date_str) and given_time < market_close_time:
+        # 在下午三点之前，取最近的交易日期
+        return given_date.strftime('%Y%m%d')
+    else:
+        return get_next_trade_date(given_date)
+
+def news_collection_name(date: datetime=None):
+    """
+    获取新闻collection名称，格式是news_0207这种
+    """
+    date = date or datetime.now()
+    suffix = trade_date_by_given_date(date)
+    suffix = suffix[4:]
+    news_collection = f"news_{suffix}"
+    return news_collection
