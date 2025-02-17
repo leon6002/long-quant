@@ -134,9 +134,16 @@ def stock_rank_data_integrate(rank_data: pd.DataFrame):
     return rank_data.reset_index(drop=True)
 
 
-def stock_rank() -> None:
+def stock_rank(trade_date: str=None) -> None:
+    """
+    根据新闻计算出股票排名
+    trade_date: 指定trade_date, 格式是'%Y%m%d'， 比如20250217
+    """
     logger.info('开始股票排名')
-    news_collection = news_collection_name()
+    if trade_date is None:
+        news_collection = news_collection_name()
+    else:
+        news_collection = news_collection_name(datetime.strptime(trade_date, '%Y%m%d'))
     rank_collection = news_collection.replace('news_', 'stock_rank_')
     # 计算股票排名
     rank_data = aggregate_stocks_rating(news_collection)
@@ -146,7 +153,9 @@ def stock_rank() -> None:
         return
     # 整合基础信息
     stock_list = integrated_rank_data['ts_code'].to_list()
-    listed_stocks = find_collection_data(listed_stocks_collection, query={'ts_code': {'$in': stock_list}}, selection={'industry': 1, 'ts_code': 1, '_id': 0, 'type': 1})
+    query = {'ts_code': {'$in': stock_list}}
+    selection = {'industry': 1, 'ts_code': 1, '_id': 0, 'type': 1}
+    listed_stocks = find_collection_data(listed_stocks_collection, query=query, selection=selection)
     integrated_rank_data = pd.merge(integrated_rank_data, pd.DataFrame(listed_stocks), on='ts_code', how='inner')
     # 存储排名
     drop_collection(rank_collection)
