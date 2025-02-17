@@ -249,3 +249,15 @@ def get_today():
 def time_now(format: str='%Y-%m-%d %H:%M:%S') -> str:
     now = datetime.now()
     return now.strftime(format)
+
+def convert_to_number(s):
+    try:
+        # 尝试将字符串转换为整数
+        return int(s)
+    except ValueError:
+        try:
+            # 如果无法转换为整数，尝试转换为浮点数
+            return float(s)
+        except ValueError:
+            # 如果都无法转换，则返回 None 或其他默认值
+            return s

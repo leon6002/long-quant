@@ -4,9 +4,9 @@ import tushare as ts
 import pandas as pd
 from tqdm import tqdm
 from config.base import TUSHARE_TOKEN
-from config.db import listed_stocks_collection
+from config.db import listed_stocks_collection, trade_calendar_collection
 from utils.common import get_date_range
-from utils.db_utils import find_collection_data
+from utils.db_utils import find_collection_data, store_df_to_mongodb
 logger = logging.getLogger(__name__)
 
 news_src = ["sina", "wallstreetcn", "10jqka", "eastmoney", "yuncaijing", "fenghuang", "jinrongjie"]
@@ -204,9 +204,24 @@ def stock_daily_basic(ts_codes, trade_date, column_rename=False):
         df.rename(columns=column_mapping, inplace=True)
     return df
 
+def max_date(date_a: datetime, date_b: datetime):
+    if date_a < date_b:
+        return date_b
+    return date_a
+
+def min_date(date_a: datetime, date_b: datetime):
+    if date_a < date_b:
+        return date_a
+    return date_b
 
 def trade_calendar(time_range: tuple, exchange: str=''):
     """
+    获取交易日历
+
+    流程：
+    1. 为了减少api调用，优先从mongodb获取
+    2. mongodb没有，就从api获取，获取到之后，增量存入mongodb
+
         名称       | 类型   | 默认显示   | 描述
     --------------|--------|----------|-------------------------
     exchange      | str    | Y        | 交易所 SSE上交所 SZSE深交所
@@ -214,9 +229,27 @@ def trade_calendar(time_range: tuple, exchange: str=''):
     is_open       | str    | Y        | 是否交易 0休市 1交易
     pretrade_date | str    | Y        | 上一个交易日
     """
-    pro = get_client()
-    df = pro.trade_cal(exchange=exchange, start_date=time_range[0], end_date=time_range[1])
+    start_date = datetime.strptime(time_range[0], '%Y%m%d')
+    end_date = datetime.strptime(time_range[1], '%Y%m%d')
+    if end_date < start_date:
+        raise ValueError("结束时间不能小于起始时间")
+    # 从mongodb查询
+    calendar_list = find_collection_data(trade_calendar_collection, {'cal_time': {'$gte': start_date, '$lte': end_date}})
+    df = pd.DataFrame(calendar_list)
+    if df.empty:
+            return update_db_trade_calendar(time_range)
+    df = df.sort_values(by="cal_time", ascending=False)
+    df_start_time: datetime = df.iloc[-1]['cal_time']
+    df_end_time: datetime = df.iloc[0]['cal_time']
+    if df_start_time != start_date or df_end_time != end_date:
+        return update_db_trade_calendar(time_range)
     return df
+
+def update_db_trade_calendar(time_range: tuple, exchange: str=''):
+        pro = get_client()
+        df = pro.trade_cal(exchange=exchange, start_date=time_range[0], end_date=time_range[1])
+        df['cal_time'] = df['cal_date'].apply(lambda x: datetime.strptime(x, '%Y%m%d'))
+        return store_df_to_mongodb(df, trade_calendar_collection)
 
 def get_trade_date_range(n: int=1) -> tuple:
     """
