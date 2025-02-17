@@ -88,7 +88,7 @@ def realtime_quote(ts_code: str, column_map: bool=False) -> pd.DataFrame:
 
 
 def stock_price(ts_code, time_range, freq, column_map=False) -> pd.DataFrame:
-    logger.info(f'stock_price time_range: {time_range}')
+    logger.info(f"stock_price time_range: {time_range}")
     df: pd.DataFrame = ts.pro_bar(ts_code=ts_code, asset="E", start_date=time_range[0], end_date=time_range[1], freq=freq)
     column_mapping = {
         'ts_code': '股票代码',

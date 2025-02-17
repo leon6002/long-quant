@@ -16,7 +16,7 @@ def get_stock_news(name: str) -> pd.DataFrame:
     news_list = find_collection_data('news_0209', query, projection, 10)
     return pd.DataFrame(news_list)
 def search(name):
-    search_results = search_engine(f'{name} {get_today()} 股票新闻 ')
+    search_results = search_engine(f"{name} {get_today()} 股票新闻 ")
     res = ''
     for index, item in enumerate(search_results):
         res += f"cite_index: {index+1} \n"
@@ -37,8 +37,8 @@ def stock_analyze_prompt(ts_code):
     df_news = get_stock_news(name)
     df_news = df_news.rename(columns={"title": '新闻标题', 'content': '新闻内容'})
     prompt = '根据下面的股票数据和新闻，分析一下投资建议，严格按照给定的格式给出结论：\n\n'
-    prompt += f'股票名称： {name}({ts_code})\n\n'
-    prompt += f'股票当前实时数据：\n\n'
+    prompt += f"股票名称： {name}({ts_code})\n\n"
+    prompt += f"股票当前实时数据：\n\n"
     prompt += df_realtime.to_markdown(index=False)
     prompt += '\n\n'
     prompt += '股票最近一个交易日基本面数据：\n\n'

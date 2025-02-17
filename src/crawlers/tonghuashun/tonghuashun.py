@@ -144,7 +144,7 @@ def trading_leaders_board_total_page(url):
         logger.info(text)
         total_page = get_by_last_page(text)
         if total_page is None or total_page <= 0:
-               raise ValueError(f'爬取龙虎榜数据出错：{url}')
+               raise ValueError(f"爬取龙虎榜数据出错：{url}")
         return total_page
 
 # 龙虎榜数据
@@ -155,7 +155,7 @@ def parse_yyb_trading(yyb_url):
         for i in range(1, total_page + 1):
                 if i == 3:
                        break
-                url = f'{yyb_url}field/ENDDATE/order/desc/page/{i}/'
+                url = f"{yyb_url}field/ENDDATE/order/desc/page/{i}/"
                 headers = get_headers()
                 response = requests.get(url=url, headers=headers)
                 text = response.text
@@ -228,7 +228,7 @@ def get_longhu():
 
 # 龙虎榜-营业部
 def get_yyb_list(page):
-        url = f'https://data.10jqka.com.cn/ifmarket/lhbyyb/type/1/tab/sbcs/field/sbcs/sort/desc/page/{page}/'
+        url = f"https://data.10jqka.com.cn/ifmarket/lhbyyb/type/1/tab/sbcs/field/sbcs/sort/desc/page/{page}/"
         headers = get_headers()
         response = requests.get(url=url, headers=headers)
         text = response.text

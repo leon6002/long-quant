@@ -51,10 +51,10 @@ def ai_chat_json(prompt, response_format, system=SYSTEM_PROMPT, provider: ModelP
 def generate_keywords(query: str, num: int) -> list:
     now = datetime.now()
     time_str = now.strftime('%Y-%m-%d %H:%M:%S')
-    prompt = f'''
+    prompt = f"""
     现在时间是：{time_str}，用户提出了下面这个问题：{query}
     请你把这个问题转换成{num}组搜索词用于搜索需要的相关信息，每行一组词，总共{num}行。
-    '''
+    """
     keywords_str = ai_chat(prompt, provider=ModelProvider.ALIYUN)
     keywords = keywords_str.split('\n')
     return keywords
@@ -84,7 +84,7 @@ def cite_update(text):
     # 定义替换函数
     def _replacer(match):
         orig_label = match.group(1)
-        return f'[^{cite_change.index(int(orig_label))+1}]'
+        return f"[^{cite_change.index(int(orig_label))+1}]"
 
     return (cite_change, re.sub(r'\[\^(\d+)\]', _replacer, text))
 
@@ -106,7 +106,7 @@ def add_reference(text: str, reference_list: list) -> str:
     references = '\n\n'
     cite_list, text = cite_update(text)
     for index, num in enumerate(cite_list):
-        references += f'[^{index+1}]: [{reference_list[num-1]['title']}]({reference_list[num-1]['link']})\n'
+        references += f"[^{index+1}]: [{reference_list[num-1]['title']}]({reference_list[num-1]['link']})\n"
     text += references
     return text
 
@@ -170,18 +170,19 @@ def ai_search(query: str, num_keyword: int=2, num_result: int=3):
     search_results = []
     for index, keyword in enumerate(keywords):
         keyword: str = keyword.strip()
-        logger.info(f'搜索关键词： {keyword}')
+        logger.info(f"搜索关键词： {keyword}")
         if keyword:
             result_list = search_engine(keyword, num_result)
             return_json['search_result'].append({'index': index, 'keyword': keyword, 'results': result_list})
             search_results += result_list
     unique_results = search_result_clean(search_results)
-    final_prompt = f'''现在时间是：{time_str}，请结合下面给出的网页搜索结果（注意权衡新闻的时效性），回答一下用户的问题。
+    final_prompt = f"""
+    现在时间是：{time_str}，请结合下面给出的网页搜索结果（注意权衡新闻的时效性），回答一下用户的问题。
     如果引用了搜索结果，请在引用的地方标注来源cite_index,比如[^1][^2]， 注意无需在尾部添加来源。
     用户的问题是：{query}
     网页搜索结果如下：
     {json.dumps(unique_results, ensure_ascii=False)}
-    '''
+    """
     answer = ai_chat(final_prompt, provider=ModelProvider.SILICONFLOW)
     answer = add_reference(answer, unique_results)
     return_json['answer'] = answer

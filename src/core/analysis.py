@@ -89,7 +89,7 @@ def summary(content: str) -> str:
     AI根据内容生成标题
     使用本地ollama模型
     """
-    prompt = f'请为以下内容生成一个简短且精准的标题。要求仅返回标题内容，不需要其他解释或修饰。\n\n示例：\n输入：如何制作一杯美味的卡布奇诺咖啡\n输出：制作卡布奇诺咖啡的方法\n\n当前内容：{content}'
+    prompt = f"请为以下内容生成一个简短且精准的标题。要求仅返回标题内容，不需要其他解释或修饰。\n\n示例：\n输入：如何制作一杯美味的卡布奇诺咖啡\n输出：制作卡布奇诺咖啡的方法\n\n当前内容：{content}"
     res_text = ai_chat(prompt, provider=ModelProvider.OLLAMA_FAST)
     res_text = re.sub(r'<think>.*?</think>', '', res_text, flags=re.DOTALL)
     res_text = res_text.strip()

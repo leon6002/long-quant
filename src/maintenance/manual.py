@@ -48,7 +48,7 @@ def _analyze_single_stock(stock, model_provider):
     :param stock: 单个股票数据字典
     :param model_provider: 当前线程使用的 ModelProvider
     """
-    logger.info(f'analyzing for stock: {stock["stock"]} using {model_provider}')
+    logger.info(f"analyzing for stock: {stock["stock"]} using {model_provider}")
     res = analyze_stock(stock['ts_code'], model_provider)
     stock['prompt'] = res[0]
     analyze_res = res[1]
