@@ -13,7 +13,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-def save_news_to_db(news_list) -> pd.DataFrame:
+def save_news_to_db(news_list) -> dict:
     """
     将新闻存进数据库
     """
@@ -31,7 +31,8 @@ def save_news_to_db(news_list) -> pd.DataFrame:
             else:
                 groups[name].append(news)
     for k, v in groups.items():
-        dfs[k] = store_df_to_mongodb(pd.DataFrame(v), k)
+        if len(v) > 0:
+            dfs[k] = store_df_to_mongodb(pd.DataFrame(v), k)
     return dfs
 
 
@@ -134,16 +135,20 @@ def stock_rank_data_integrate(rank_data: pd.DataFrame):
     return rank_data.reset_index(drop=True)
 
 
-def stock_rank(trade_date: str=None) -> None:
+def stock_rank(trade_date: str=None, news_collection: str=None) -> None:
     """
     根据新闻计算出股票排名
     trade_date: 指定trade_date, 格式是'%Y%m%d'， 比如20250217
     """
-    logger.info('开始股票排名')
-    if trade_date is None:
-        news_collection = news_collection_name()
+    if news_collection is None:
+        if trade_date is None:
+            news_collection = news_collection_name()
+            logger.info(f'开始股票排名: news_collection:None;trade_date:None; calculated news_collection: [{news_collection}]')
+        else:
+            news_collection = news_collection_name(datetime.strptime(trade_date, '%Y%m%d'))
+            logger.info(f'开始股票排名: news_collection:None; trade_date: {trade_date}, calculated news_collection: [{news_collection}]')
     else:
-        news_collection = news_collection_name(datetime.strptime(trade_date, '%Y%m%d'))
+        logger.info(f'开始股票排名: news_collection param is: {news_collection}')
     rank_collection = news_collection.replace('news_', 'stock_rank_')
     # 计算股票排名
     rank_data = aggregate_stocks_rating(news_collection)
@@ -160,7 +165,7 @@ def stock_rank(trade_date: str=None) -> None:
     # 存储排名
     drop_collection(rank_collection)
     store_df_to_mongodb(integrated_rank_data,rank_collection)
-    logger.info(f"已存储股票排名数据")
+    logger.info(f"已覆盖存储最新股票排名数据")
 
 def update_ranked_stock_price(news_date, trade_date):
     """

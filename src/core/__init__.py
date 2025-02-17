@@ -12,10 +12,7 @@ def main():
     news_dfs = save_news_to_db(news_list)
     # AI分析并存储结果
     for k, v in news_dfs.items():
+        if len(v) == 0:
+            continue
         ai_analysis(k, v)
-    if not news_dfs.empty:
-        # 更新股票排名
-        stock_rank()
-
-def update_price():
-    pass
+        stock_rank(news_collection=k)

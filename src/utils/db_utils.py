@@ -39,7 +39,9 @@ def store_df_to_mongodb(df: pd.DataFrame, collection_name: str) -> pd.DataFrame:
         raise TypeError("df参数必须是pandas DataFrame")
     if not collection_name:
         raise ValueError("数据库名和集合名不能为空")
-
+    if df is None or df.empty:
+        logger.info("df为空，没有数据需要插入到MongoDB")
+        return df
     # 使用上下文管理器处理MongoDB连接
     with get_client() as client:
         db = client[MONGODB_NAME]
@@ -64,7 +66,7 @@ def store_df_to_mongodb(df: pd.DataFrame, collection_name: str) -> pd.DataFrame:
             except pymongo.errors.BulkWriteError as bwe:
                 logger.error(f"批量写入错误: {bwe.details}")
         else:
-            logger.info("没有新记录需要插入到MongoDB: {collection_name}")
+            logger.info(f"没有新记录需要插入到MongoDB: {collection_name}")
         df = pd.DataFrame(inserted_records)
     return df
 
