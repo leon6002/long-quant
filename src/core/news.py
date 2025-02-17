@@ -91,8 +91,9 @@ def aggregate_stocks_rating(news_collection):
     # 遍历匹配结果，进行聚合
     for name, score in matches:
         score = float(score)
-        stock_data[name]["total_score"] += score
-        stock_data[name]["count"] += 1
+        if score < 0 or score >= 0.9:
+            stock_data[name]["total_score"] += score
+            stock_data[name]["count"] += 1
 
     # 计算每个股票的平均分数，并按总分数排序
     sorted_stocks = sorted(
