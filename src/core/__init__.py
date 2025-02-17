@@ -7,7 +7,7 @@ def main():
     # 1. 爬取东方财富新闻
     crawler = EastMoneyCrawler()
     log.info('start crawler')
-    news_list = crawler.get_news(limit=50)
+    news_list = crawler.get_news(limit=20)
     # 存进mongods
     news_dfs = save_news_to_db(news_list)
     # AI分析并存储结果
