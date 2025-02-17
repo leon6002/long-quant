@@ -13,8 +13,9 @@ def main():
     # AI分析并存储结果
     for k, v in news_dfs.items():
         ai_analysis(k, v)
-    # 更新股票排名
-    stock_rank()
+    if not news_dfs.empty:
+        # 更新股票排名
+        stock_rank()
 
 def update_price():
     pass

@@ -13,7 +13,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-def save_news_to_db(news_list) -> None:
+def save_news_to_db(news_list) -> pd.DataFrame:
     """
     将新闻存进数据库
     """
