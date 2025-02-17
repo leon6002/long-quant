@@ -6,7 +6,7 @@ from tqdm import tqdm
 from config.base import TUSHARE_TOKEN
 from config.db import listed_stocks_collection, trade_calendar_collection
 from utils.common import get_date_range
-from utils.db_utils import find_collection_data, store_df_to_mongodb
+from utils.db_utils import drop_collection, find_collection_data, find_trade_calendar_min_max, store_df_to_mongodb
 logger = logging.getLogger(__name__)
 
 news_src = ["sina", "wallstreetcn", "10jqka", "eastmoney", "yuncaijing", "fenghuang", "jinrongjie"]
@@ -229,26 +229,37 @@ def trade_calendar(time_range: tuple, exchange: str=''):
     is_open       | str    | Y        | 是否交易 0休市 1交易
     pretrade_date | str    | Y        | 上一个交易日
     """
-    start_date = datetime.strptime(time_range[0], '%Y%m%d')
-    end_date = datetime.strptime(time_range[1], '%Y%m%d')
-    if end_date < start_date:
+    start_time = datetime.strptime(time_range[0], '%Y%m%d')
+    end_time = datetime.strptime(time_range[1], '%Y%m%d')
+    if end_time < start_time:
         raise ValueError("结束时间不能小于起始时间")
-    # 从mongodb查询
-    calendar_list = find_collection_data(trade_calendar_collection, {'cal_time': {'$gte': start_date, '$lte': end_date}})
-    df = pd.DataFrame(calendar_list)
-    if df.empty:
-            return update_db_trade_calendar(time_range)
-    df = df.sort_values(by="cal_time", ascending=False)
-    df_start_time: datetime = df.iloc[-1]['cal_time']
-    df_end_time: datetime = df.iloc[0]['cal_time']
-    if df_start_time != start_date or df_end_time != end_date:
-        return update_db_trade_calendar(time_range)
-    return df
+    db_min_time, db_max_time = find_trade_calendar_min_max()
+    if db_min_time is None or db_max_time is None:
+            update_db_trade_calendar(time_range)
+            db_min_time, db_max_time = find_trade_calendar_min_max()
+            if db_min_time is None or db_max_time is None:
+                raise ValueError('查询交易日历出错')
+    if db_min_time > start_time or db_max_time < end_time:
+        start_date_str = datetime.strftime(min_date(db_min_time, start_time), '%Y%m%d')
+        end_date_str = datetime.strftime(max_date(db_max_time, end_time), '%Y%m%d')
+        update_db_trade_calendar((start_date_str, end_date_str))
+    return find_trade_calendar_from_db(time_range)
+
+
+def find_trade_calendar_from_db(time_range: tuple):
+        start_time = datetime.strptime(time_range[0],'%Y%m%d')
+        end_time = datetime.strptime(time_range[1],'%Y%m%d')
+        calendar_list = find_collection_data(trade_calendar_collection, {'cal_time': {'$gte': start_time, '$lte': end_time}})
+        df = pd.DataFrame(calendar_list)
+        df = df.sort_values(by="cal_time", ascending=False)
+        return df
 
 def update_db_trade_calendar(time_range: tuple, exchange: str=''):
         pro = get_client()
         df = pro.trade_cal(exchange=exchange, start_date=time_range[0], end_date=time_range[1])
         df['cal_time'] = df['cal_date'].apply(lambda x: datetime.strptime(x, '%Y%m%d'))
+        if not df.empty:
+            drop_collection(trade_calendar_collection)
         return store_df_to_mongodb(df, trade_calendar_collection)
 
 def get_trade_date_range(n: int=1) -> tuple:

@@ -4,7 +4,7 @@ import pandas as pd
 from bson import ObjectId
 import logging
 from config.base import MONGODB_URI, MONGODB_NAME
-
+from config.db import trade_calendar_collection
 # 配置日志
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -76,6 +76,27 @@ def find_collection_data(collection_name, query={}, selection={}, limit=0):
         data = list(collection.find(query, selection).limit(limit))
         return data
 
+def find_trade_calendar_min_max():
+    with get_client() as client:
+        db = client[MONGODB_NAME]
+        collection = db[trade_calendar_collection]
+        # 通过聚合查询获取最大最小值
+        pipeline = [
+            {
+                "$group": {
+                    "_id": None,
+                    "max_time": {"$max": "$cal_time"},
+                    "min_time": {"$min": "$cal_time"}
+                }
+            }
+        ]
+        result = list(collection.aggregate(pipeline))
+        if result:
+            max_time = result[0]["max_time"]
+            min_time = result[0]["min_time"]
+            return min_time, max_time
+        else:
+            return None, None
 
 def update_by_id(df, collection_name):
     # 根据df中的_id字段更新mongodb中对应的数据
