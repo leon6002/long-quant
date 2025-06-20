@@ -1,6 +1,7 @@
 from collections import defaultdict
 from datetime import datetime
 import re
+import time
 import pandas as pd
 from tqdm import tqdm
 from config.db import listed_stocks_collection
@@ -9,6 +10,7 @@ from services.tushare import get_last_trade_date, news_collection_name, stock_da
 from utils.db_utils import drop_collection, find_collection_data, store_df_to_mongodb, update_by_id
 from utils.common import process_news, time_now
 import logging
+from  message.wx_push import push_news
 
 
 logger = logging.getLogger(__name__)
@@ -23,6 +25,7 @@ def save_news_to_db(news_list) -> dict:
     groups = {}
     dfs = {}
     # 新闻所影响的交易日
+    push_news(news_list)
     for news in tqdm(news_list):
         if news:
             name = news_collection_name(news['datetime'])
@@ -190,3 +193,4 @@ def update_ranked_stock_price(news_date, trade_date):
     df = pd.merge(df, stock_basic_df, on='ts_code', how='inner')
     drop_collection(f"stock_rank_price_{trade_date[4:]}")
     store_df_to_mongodb(df, f"stock_rank_price_{trade_date[4:]}")
+
