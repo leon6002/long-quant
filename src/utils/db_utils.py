@@ -5,6 +5,7 @@ from bson import ObjectId
 import logging
 from config.base import MONGODB_URI, MONGODB_NAME
 from config.db import trade_calendar_collection
+from message.wx_push import push_news
 # 配置日志
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -68,6 +69,8 @@ def store_df_to_mongodb(df: pd.DataFrame, collection_name: str) -> pd.DataFrame:
         else:
             logger.info(f"没有新记录需要插入到MongoDB: {collection_name}")
         df = pd.DataFrame(inserted_records)
+    if inserted_records:
+        push_news(inserted_records)
     return df
 
 

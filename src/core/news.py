@@ -25,7 +25,6 @@ def save_news_to_db(news_list) -> dict:
     groups = {}
     dfs = {}
     # 新闻所影响的交易日
-    push_news(news_list)
     for news in tqdm(news_list):
         if news:
             name = news_collection_name(news['datetime'])
