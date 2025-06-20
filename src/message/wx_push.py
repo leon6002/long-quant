@@ -98,14 +98,13 @@ def push_template(title, desc, timestr):
 
 import aiohttp
 
-def push_news(news_list):
-    # 按照news['datetime']排序
-    news_list = sorted(news_list, key=lambda x: x['datetime'])
+def push_news(news_list: list) -> None:
+    # news_list倒序
+    news_list.reverse()
     for news in news_list:
-        # Asynchronous sleep instead of time.sleep (which is blocking)
-        time.sleep(4)  # Reduced slightly since async is non-blocking
-        # Call the async version of push_template (assumed to be modified)
+        print(news)
         push_template(news['title'], news['content'], datetime.strftime(news['datetime'], '%Y-%m-%d %H:%M:%S'))
+        time.sleep(4)
 
 
 
