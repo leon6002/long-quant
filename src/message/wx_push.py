@@ -99,6 +99,8 @@ def push_template(title, desc, timestr):
 import aiohttp
 
 def push_news(news_list):
+    # 按照news['datetime']排序
+    news_list = sorted(news_list, key=lambda x: x['datetime'])
     for news in news_list:
         # Asynchronous sleep instead of time.sleep (which is blocking)
         time.sleep(4)  # Reduced slightly since async is non-blocking
