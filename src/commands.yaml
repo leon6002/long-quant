@@ -1,0 +1,5 @@
+commands:
+  hello: src/scripts/hello.py
+  run_task: src/scripts/run_task.py
+  analyze: src/scripts/analyze.py
+  news: src/scripts/get_news.py

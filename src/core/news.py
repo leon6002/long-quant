@@ -6,11 +6,11 @@ import pandas as pd
 from tqdm import tqdm
 from config.db import listed_stocks_collection
 from core.analysis import analyze_news
+from message.feishu.fs_simple_text import push_sigle_message_card
 from services.tushare import get_last_trade_date, news_collection_name, stock_daily_basic, stock_performance
 from utils.db_utils import drop_collection, find_collection_data, store_df_to_mongodb, update_by_id
 from utils.common import process_news, time_now
 import logging
-from  message.wx_push import push_news
 
 
 logger = logging.getLogger(__name__)
@@ -57,6 +57,7 @@ def ai_analysis(collection: str, news_df: pd.DataFrame) -> None:
         row['stocks'] = result['stocks']
         row['sectors'] = result['sectors']
         row['rating'] = result['rating']
+        push_sigle_message_card(row['title'], row['content'], row['datetime'], row['stocks'], row['hot'] > 0)
         return row
 
     news_df = news_df.apply(process_row,axis=1)

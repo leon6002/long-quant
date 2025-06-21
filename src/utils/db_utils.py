@@ -5,7 +5,6 @@ from bson import ObjectId
 import logging
 from config.base import MONGODB_URI, MONGODB_NAME
 from config.db import trade_calendar_collection
-from message.wx_push import push_news
 # 配置日志
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -69,8 +68,6 @@ def store_df_to_mongodb(df: pd.DataFrame, collection_name: str) -> pd.DataFrame:
         else:
             logger.info(f"没有新记录需要插入到MongoDB: {collection_name}")
         df = pd.DataFrame(inserted_records)
-    if inserted_records:
-        push_news(inserted_records)
     return df
 
 
@@ -79,6 +76,13 @@ def find_collection_data(collection_name, query={}, selection={}, limit=0):
         db = client[MONGODB_NAME]
         collection = db[collection_name]
         data = list(collection.find(query, selection).limit(limit))
+        return data
+
+def find_collection_latest_data(collection_name, query={}, selection={}, limit=0):
+    with get_client() as client:
+        db = client[MONGODB_NAME]
+        collection = db[collection_name]
+        data = list(collection.find(query, selection).sort([("datetime", -1)]).limit(limit))
         return data
 
 def find_trade_calendar_min_max():

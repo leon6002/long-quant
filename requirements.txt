@@ -17,3 +17,4 @@ langchain-community
 duckduckgo-search
 chardet
 lxml_html_clean
+lark-oapi>=1.4.8
