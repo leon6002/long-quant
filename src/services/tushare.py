@@ -3,7 +3,7 @@ import logging
 import tushare as ts
 import pandas as pd
 from tqdm import tqdm
-from config.base import TUSHARE_TOKEN
+from config.ai import TUSHARE_TOKEN
 from config.db import listed_stocks_collection, trade_calendar_collection
 from utils.common import get_date_range
 from utils.db_utils import drop_collection, find_collection_data, find_trade_calendar_min_max, store_df_to_mongodb
