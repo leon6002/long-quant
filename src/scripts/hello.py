@@ -1,2 +1,5 @@
+from message.feishu.fs_msg_format import plain_text
+
+
 def run(param) -> str:
-    return param
+    return plain_text(param)

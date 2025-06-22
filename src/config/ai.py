@@ -1,10 +1,7 @@
 import os
-from dotenv import load_dotenv
 from enum import Enum
 from typing import Dict, Any
 
-# Load environment variables from .env file
-load_dotenv()
 
 TUSHARE_TOKEN = os.getenv('TUSHARE_TOKEN')
 SILICONFLOW_TOKEN = os.getenv('SILICONFLOW_TOKEN')

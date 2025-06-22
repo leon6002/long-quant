@@ -2,11 +2,9 @@ import asyncio
 from datetime import datetime
 import requests
 from dotenv import load_dotenv
-import os
 import json
 import time
-load_dotenv()
-url = os.getenv("WEBHOOK_WX")
+from config.fs_config import WEBHOOK_WX
 
 example_template = {"msgtype":"template_card",
                      "template_card":{
@@ -62,7 +60,7 @@ def push_text(text):
     msg_type = "text"
     msg =  {"msgtype": msg_type, "text": {"content": text}}
     headers = {"Content-Type": "application/json"}
-    res = requests.post(url, data=json.dumps(msg, ensure_ascii=False), headers=headers)
+    res = requests.post(WEBHOOK_WX, data=json.dumps(msg, ensure_ascii=False), headers=headers)
     print(res.status_code)
     print(res.text)
     return res.text
@@ -91,7 +89,7 @@ def push_template(title, desc, timestr):
                 }
     headers = {"Content-Type": "application/json"}
 
-    res = requests.post(url, data=json.dumps(template_json, ensure_ascii=False), headers=headers)
+    res = requests.post(WEBHOOK_WX, data=json.dumps(template_json, ensure_ascii=False), headers=headers)
     print(res.status_code)
     print(res.text)
     return res.text

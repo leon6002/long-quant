@@ -1,0 +1,10 @@
+import os
+
+
+BASE_DOMAIN=os.getenv("BASE_DOMAIN")
+APP_ID=os.getenv("APP_ID")
+APP_SECRET=os.getenv("APP_SECRET")
+FS_NEWS_CARD_ID=os.getenv("FS_NEWS_CARD_ID")
+WEBHOOK_FS=os.getenv("WEBHOOK_FS")
+WEBHOOK_FS_TOKEN=os.getenv("WEBHOOK_FS_TOKEN")
+WEBHOOK_WX=os.getenv("WEBHOOK_WX")

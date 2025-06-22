@@ -1,16 +1,12 @@
 import os
-from dotenv import load_dotenv
 import logging
 
-# Load environment variables from .env file
-load_dotenv()
 
-TUSHARE_TOKEN = os.getenv('TUSHARE_TOKEN')
-SILICONFLOW_TOKEN = os.getenv('SILICONFLOW_TOKEN')
-ALI_AI_TOKEN= os.getenv("ALI_AI_TOKEN")
-DEERAPI_TOKEN= os.getenv("DEERAPI_TOKEN")
-MONGODB_URI= os.getenv("MONGODB_URI")
-MONGODB_NAME= os.getenv("MONGODB_NAME")
+
+
+PAGE_SIZE=os.getenv("PAGE_SIZE", 20)
+JOB_FREQUENCY=os.getenv("JOB_FREQUENCY", 5)
+
 # 集中配置日志
 logging.basicConfig(
     level=logging.INFO,

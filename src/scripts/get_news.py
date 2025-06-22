@@ -3,6 +3,7 @@ from services.tushare import news_collection_name
 from utils.db_utils import find_collection_latest_data
 from message.feishu.fs_msg_format import interactive_card, interactive_card_webhook
 import os
+from config.fs_config import FS_NEWS_CARD_ID
 
 def run(command: list) -> None:
     """获取mongodb中最新的新闻记录
@@ -29,7 +30,7 @@ def gen_news_content(limit: int) -> dict:
         card_item = gen_news_param(item['title'], item['content'], item['datetime'], item['stocks'], item['hot'] > 0)
         card_news.append(card_item)
     template_param = {"news": card_news}
-    return interactive_card(os.getenv("FS_NEWS_CARD_ID"), template_param)
+    return interactive_card(FS_NEWS_CARD_ID, template_param)
 
 def gen_batch_news_content_webhook(limit: int=3) -> dict:
     collection_name = news_collection_name()
@@ -41,12 +42,12 @@ def gen_batch_news_content_webhook(limit: int=3) -> dict:
         card_item = gen_news_param(item['title'], item['content'], item['datetime'], item['stocks'], item['hot'] > 0)
         card_news.append(card_item)
     template_param = {"news": card_news}
-    return interactive_card_webhook(os.getenv("FS_NEWS_CARD_ID"), template_param)
+    return interactive_card_webhook(FS_NEWS_CARD_ID, template_param)
 
 def gen_news_content_webhook(title: str, content: str, publish_time: datetime, stocks: str, hot: bool=False) -> dict:
     card_news = [gen_news_param(title, content, publish_time, stocks, hot)]
     template_param = {"news": card_news}
-    return interactive_card_webhook(os.getenv("FS_NEWS_CARD_ID"), template_param)
+    return interactive_card_webhook(FS_NEWS_CARD_ID, template_param)
 
 def gen_news_param(title: str, content: str, publish_time: datetime, stocks: str, hot: bool=False) -> dict:
     if hot:

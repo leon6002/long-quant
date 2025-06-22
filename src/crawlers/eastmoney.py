@@ -94,7 +94,7 @@ class EastMoneyCrawler:
         # 过滤当天新闻
         today = datetime.now().strftime("%Y-%m-%d")
         return [news for news in news_list if news.get("datetime", "").startswith(today)]
-    
+
     def get_news(self, limit: int = 50) -> list:
         raw_data = self.fetch_news(limit)
         return self.parse_response(raw_data)

@@ -3,8 +3,7 @@ from pymongo import MongoClient, UpdateOne
 import pandas as pd
 from bson import ObjectId
 import logging
-from config.base import MONGODB_URI, MONGODB_NAME
-from config.db import trade_calendar_collection
+from config.db import trade_calendar_collection, MONGODB_URI, MONGODB_NAME
 # 配置日志
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

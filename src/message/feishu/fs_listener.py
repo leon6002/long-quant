@@ -3,12 +3,12 @@ from dotenv import load_dotenv
 import lark_oapi as lark
 from lark_oapi.api.im.v1 import *
 import json
-import os
 
 from message.feishu.fs_handler import handle_command
 from services.tushare import news_collection_name
 from utils.db_utils import find_collection_data
 from message.feishu.fs_msg_format import plain_text
+from config.fs_config import APP_ID, APP_SECRET
 
 # 注册接收消息事件，处理接收到的消息。
 # Register event handler to handle received messages.
@@ -45,8 +45,8 @@ event_handler = (
 
 # 创建 LarkClient 对象，用于请求OpenAPI, 并创建 LarkWSClient 对象，用于使用长连接接收事件。
 # Create LarkClient object for requesting OpenAPI, and create LarkWSClient object for receiving events using long connection.
-lark.APP_ID = os.getenv("APP_ID")
-lark.APP_SECRET = os.getenv("APP_SECRET")
+lark.APP_ID = APP_ID
+lark.APP_SECRET = APP_SECRET
 client = lark.Client.builder().app_id(lark.APP_ID).app_secret(lark.APP_SECRET).build()
 wsClient = lark.ws.Client(
     lark.APP_ID,

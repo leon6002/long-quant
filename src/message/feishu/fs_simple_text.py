@@ -6,6 +6,7 @@ import hashlib
 import hmac
 import base64
 from datetime import datetime
+from config.fs_config import WEBHOOK_FS,WEBHOOK_FS_TOKEN
 
 from scripts.get_news import gen_batch_news_content_webhook, gen_news_content, gen_news_content_webhook
 
@@ -13,15 +14,12 @@ from scripts.get_news import gen_batch_news_content_webhook, gen_news_content, g
 飞书webhook机器人推送文本
 """
 
-FS_URL = os.getenv("WEBHOOK_FS")
-WEBHOOK_FS_TOKEN = os.getenv("WEBHOOK_FS_TOKEN")
-CARD_ID = os.getenv("FS_NEWS_CARD_ID")
 headers = {"Content-Type": "application/json"}
 def push_text_fs(text):
     msg = get_fs_body()
     msg['msg_type'] = "text"
     msg['content'] = {"text": text}
-    res = requests.post(FS_URL, data=json.dumps(msg, ensure_ascii=False), headers=headers)
+    res = requests.post(WEBHOOK_FS, data=json.dumps(msg, ensure_ascii=False), headers=headers)
     print(res.status_code)
     print(res.text)
     return res.text
@@ -32,7 +30,7 @@ def push_card():
     #合并这两个dict
     msg = {**msg, **result}
     print(json.dumps(msg, ensure_ascii=False, indent=4))
-    res = requests.post(FS_URL, data=json.dumps(msg, ensure_ascii=False), headers=headers)
+    res = requests.post(WEBHOOK_FS, data=json.dumps(msg, ensure_ascii=False), headers=headers)
     print(res.status_code)
     print(res.text)
     return res.text
@@ -41,7 +39,7 @@ def push_sigle_message_card(title: str, content: str, publish_time: datetime, st
     msg = get_fs_body()
     result = gen_news_content_webhook(title, content, publish_time, stocks, hot)
     msg = {**msg, **result}
-    res = requests.post(FS_URL, data=json.dumps(msg, ensure_ascii=False), headers=headers)
+    res = requests.post(WEBHOOK_FS, data=json.dumps(msg, ensure_ascii=False), headers=headers)
     return res.text
 def get_fs_body() -> dict:
     timestamp = get_timestamp()

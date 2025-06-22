@@ -2,12 +2,13 @@ from crawlers.eastmoney import EastMoneyCrawler
 from .news import save_news_to_db, ai_analysis, stock_rank
 import logging
 log = logging.getLogger(__name__)
+from config.base import PAGE_SIZE
 
 def main():
     # 1. 爬取东方财富新闻
     crawler = EastMoneyCrawler()
     log.info('start crawler')
-    news_list = crawler.get_news(limit=5)
+    news_list = crawler.get_news(limit=PAGE_SIZE)
     # 存进mongods
     news_dfs = save_news_to_db(news_list)
     # AI分析并存储结果
