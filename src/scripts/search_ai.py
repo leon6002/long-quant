@@ -1,5 +1,6 @@
 from datetime import datetime
-from message.feishu.fs_msg_format import plain_text
+from config.fs_config import AI_SEARCH_CARD_ID
+from message.feishu.fs_msg_format import plain_text, interactive_card
 from services.ai_service import ai_search
 
 import logging
@@ -11,22 +12,6 @@ log.info('imports loaded')
 
 def run(args: list[str]):
     query = args[0]
-    content = ai_search_workflow(query)
-    return plain_text(content)
-
-def ai_search_workflow(query):
-    res_json = ai_search(query, 1, 3)
-    return res_json['answer']
-    # references_content = ''
-    # save_content = f"**问题：** {res_json['query']}\n\n"
-    # save_content += f"{res_json['answer']}"
-    # search_result = res_json['search_result']
-    # references_content = ''
-    # for s in search_result:
-    #        references_content += f"### 搜索词：{s['keyword']}\n\n"
-    #        for r in s['results']:
-    #             r: SearchResultItem
-    #             references_content += f"标题: {r.title}\n\n"
-    #             references_content += f"来源链接: {r.url}\n\n"
-    #             references_content += f"内容: {r.content}\n\n"
-    # return references_content
+    res = ai_search(query, 1, 3)
+    template_param = {'question': res['query'], 'answer':  res['answer']}
+    return interactive_card(AI_SEARCH_CARD_ID, template_param)

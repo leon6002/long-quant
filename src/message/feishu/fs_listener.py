@@ -1,11 +1,8 @@
-from datetime import datetime
 import lark_oapi as lark
 from lark_oapi.api.im.v1 import *
 import json
 
 from message.feishu.fs_handler import handle_command
-from services.tushare import news_collection_name
-from utils.db_utils import find_collection_data
 from message.feishu.fs_msg_format import plain_text
 from config.fs_config import APP_ID, APP_SECRET
 
@@ -105,4 +102,4 @@ def start_listen_fs():
 
 
 if __name__ == "__main__":
-    start_listen_fs()
+    pass
