@@ -1,5 +1,5 @@
 commands:
   hello: src/scripts/hello.py
-  search: src/scripts/search_ai.py
+  s: src/scripts/search_ai.py
   analyze: src/scripts/analyze.py
   news: src/scripts/get_news.py
