@@ -22,6 +22,7 @@ def get_news(time_range, sources=news_src):
     """
     Fetch news briefings from the Tushare API,
     """
+    logger.warning(f"TUSHARE calling: fetching news from {sources}")
     pro = get_client()
     dfs = []
 
@@ -38,6 +39,7 @@ def get_news(time_range, sources=news_src):
 
 
 def get_stocks():
+    logger.warning('TUSHARE calling: fetching all stocks...')
     pro = get_client()
     # Query the list of all currently listed and trading stocks
     data = pro.stock_basic(exchange='', list_status='L', fields='ts_code,symbol,name,area,industry,list_date')
@@ -88,7 +90,7 @@ def realtime_quote(ts_code: str, column_map: bool=False) -> pd.DataFrame:
 
 
 def stock_price(ts_code, time_range, freq, column_map=False) -> pd.DataFrame:
-    logger.info(f"stock_price time_range: {time_range}")
+    logger.warning(f"TUSHARE CALLING: stock_price time_range: {time_range}")
     df: pd.DataFrame = ts.pro_bar(ts_code=ts_code, asset="E", start_date=time_range[0], end_date=time_range[1], freq=freq)
     column_mapping = {
         'ts_code': '股票代码',
@@ -127,6 +129,7 @@ def stock_performance(ts_codes: str, trade_date: str, period: str='D', column_re
     vol         | float  | 成交量 （手）
     amount      | float  | 成交额 （千元）
     """
+    logger.warning(f"TUSHARE CALLING: fetching stock_basic")
     pro = get_client()
     if period == 'D':
         df = pro.daily(ts_code=ts_codes, trade_date=trade_date)
@@ -176,6 +179,7 @@ def stock_daily_basic(ts_codes, trade_date, column_rename=False):
     | total_mv       | float  | 总市值  （万元）
     | circ_mv        | float  | 流通市值（万元）
     """
+    logger.warning("TUSHARE CALLING: fetching daily_basic")
     pro = get_client()
     df = pro.daily_basic(ts_code=ts_codes, trade_date=trade_date)
 
@@ -255,6 +259,7 @@ def find_trade_calendar_from_db(time_range: tuple):
         return df
 
 def update_db_trade_calendar(time_range: tuple, exchange: str=''):
+        logger.warning("TUSHARE calling: fetching trade calendar...")
         pro = get_client()
         df = pro.trade_cal(exchange=exchange, start_date=time_range[0], end_date=time_range[1])
         df['cal_time'] = df['cal_date'].apply(lambda x: datetime.strptime(x, '%Y%m%d'))

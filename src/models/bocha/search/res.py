@@ -56,7 +56,7 @@ class Data:
         self._type = _type
         self.queryContext = QueryContext(**queryContext)
         self.webPages = WebPages(**webPages)
-        self.images = Images(**images)
+        self.images = Images(**images) if images is not None else None
 
 class SearchResponse:
     def __init__(self, code=None, log_id=None, msg=None, data=None):

@@ -1,10 +1,12 @@
 import requests
+from config.base import SEARCH_ENGINE
 from config.bocha import BOCHA_API_KEY
 from models.bocha.search.res import SearchResponse
 
 import trafilatura
 from langchain_community.tools import DuckDuckGoSearchResults
 import os
+
 
 
 headers = {
@@ -80,17 +82,16 @@ class BochaSearch(SearchEngine):
             search_result['items'].append(item)
         return SearchResult(**search_result)
 
+_search_engine_type = {
+    'bocha': BochaSearch,
+    'duckduckgo': DuckDuckGoSearch,
+}
 def do_search(query, num_results=5) -> list[SearchResultItem]:
     """
     根据配置选择搜索引擎，然后对每个url进行正文爬取
     """
-    search_engine_type = os.getenv('SEARCH_ENGINE', 'duckduckgo')
-    if search_engine_type.lower() == 'duckduckgo':
-        search = DuckDuckGoSearch()
-    elif search_engine_type.lower() == 'bocha':
-        search = BochaSearch()
-    else:
-        raise ValueError(f'不支持的搜索引擎类型: {search_engine_type}')
+    search_engine = _search_engine_type.get(SEARCH_ENGINE)
+    search: BochaSearch | DuckDuckGoSearch = search_engine()
     search_result = search.search(query, num_results)
     for index, result in enumerate(search_result.items):
         result.cite_index = index + 1

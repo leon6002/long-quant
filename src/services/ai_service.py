@@ -185,12 +185,20 @@ def ai_search(query: str, num_keyword: int=2, num_result: int=3):
             return_json['search_result'].append({'index': index, 'keyword': keyword, 'results': result_list})
             search_results += result_list
     unique_results = search_result_clean(search_results)
+    cite_content = ''
+    for ur in unique_results:
+        cite_content += f"""
+        **----第{ur.cite_index}条网页搜索结果----**
+        网页标题：{ur.title}
+        网页链接：{ur.url}
+        网页内容：{ur.content}
+        """
     final_prompt = f"""
     现在时间是：{time_str}，请结合下面给出的网页搜索结果（注意权衡新闻的时效性），回答一下用户的问题。
     如果引用了搜索结果，请在引用的地方标注来源cite_index,比如[^1][^2]， 注意无需在尾部添加来源。
     用户的问题是：{query}
     网页搜索结果如下：
-    {json.dumps(unique_results, ensure_ascii=False, cls=CustomEncoder)}
+    {cite_content}
     """
     print(f'final prompt is: {final_prompt}')
     answer = ai_chat(final_prompt, provider=ModelProvider.ALIYUN)

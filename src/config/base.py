@@ -4,8 +4,9 @@ import logging
 
 
 
-PAGE_SIZE=os.getenv("PAGE_SIZE", 20)
-JOB_FREQUENCY=os.getenv("JOB_FREQUENCY", 5)
+PAGE_SIZE=int(os.getenv("PAGE_SIZE", 20))
+JOB_FREQUENCY=int(os.getenv("JOB_FREQUENCY", 5))
+SEARCH_ENGINE=os.getenv("SEARCH_ENGINE", "bocha")
 
 # 集中配置日志
 logging.basicConfig(
