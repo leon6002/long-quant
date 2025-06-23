@@ -1,6 +1,6 @@
 from bson import Regex
 import pandas as pd
-from crawlers.general import search_engine
+from services.search import do_search
 from utils.common import get_today
 from utils.db_utils import find_collection_data
 from services.tushare import find_stock_name, get_last_trade_date, get_trade_date_range, realtime_quote, stock_daily_basic, stock_price, trade_calendar
@@ -16,13 +16,13 @@ def get_stock_news(name: str) -> pd.DataFrame:
     news_list = find_collection_data('news_0209', query, projection, 10)
     return pd.DataFrame(news_list)
 def search(name):
-    search_results = search_engine(f"{name} {get_today()} 股票新闻 ")
+    search_results = do_search(f"{name} {get_today()} 股票新闻 ")
     res = ''
     for index, item in enumerate(search_results):
         res += f"cite_index: {index+1} \n"
-        res += f"标题：\n {item['title']} \n"
-        res += f"链接：{item['link']} \n"
-        res += f"内容：\n {item['content']} \n\n"
+        res += f"标题：\n {item.title} \n"
+        res += f"链接：{item.url} \n"
+        res += f"内容：\n {item.content} \n\n"
     return res
 
 def stock_analyze_prompt(ts_code):

@@ -4,13 +4,23 @@ import re
 from openai import  OpenAI
 
 from config.ai import MODEL_CONFIG, ModelProvider
-from crawlers.general import search_engine
+from .search import do_search, SearchResultItem
 import logging
+
 
 logger = logging.getLogger(__name__)
 
 SYSTEM_PROMPT = "You are a helpful assistant."
 
+
+import json
+
+class CustomEncoder(json.JSONEncoder):
+    def default(self, obj):
+        try:
+            return vars(obj)
+        except AttributeError:
+            return super().default(obj)
 def create_client(provider: ModelProvider) -> OpenAI:
     """Create OpenAI client for specified provider"""
     config = MODEL_CONFIG.get(provider)
@@ -59,17 +69,16 @@ def generate_keywords(query: str, num: int) -> list:
     keywords = keywords_str.split('\n')
     return keywords
 
-def search_result_clean(results_group: list):
+def search_result_clean(results_group: list[SearchResultItem]):
     seen = set()
-    unique_results = []
+    unique_results: list[SearchResultItem] = []
     for item in results_group:
-        link = item['link']
-        if link not in seen:
-            seen.add(link)
+        if item.url not in seen:
+            seen.add(item.url)
             unique_results.append(item)
     # 添加引用下标
     for index, result in enumerate(unique_results):
-        result['cite_index'] = index + 1
+        result.cite_index = index + 1
     return unique_results
 
 def cite_update(text):
@@ -88,7 +97,7 @@ def cite_update(text):
 
     return (cite_change, re.sub(r'\[\^(\d+)\]', _replacer, text))
 
-def add_reference(text: str, reference_list: list) -> str:
+def add_reference(text: str, reference_list: list[SearchResultItem]) -> str:
     '''
     在文本脚注部分添加文献引用
 
@@ -106,7 +115,7 @@ def add_reference(text: str, reference_list: list) -> str:
     references = '\n\n'
     cite_list, text = cite_update(text)
     for index, num in enumerate(cite_list):
-        references += f"[^{index+1}]: [{reference_list[num-1]['title']}]({reference_list[num-1]['link']})\n"
+        references += f"[^{index+1}]: [{reference_list[num-1].title}]({reference_list[num-1].url})\n"
     text += references
     return text
 
@@ -167,12 +176,12 @@ def ai_search(query: str, num_keyword: int=2, num_result: int=3):
     keywords = generate_keywords(query, num_keyword)
     # 最终返回的数据体
     return_json = {'query': query, 'search_result': [], 'answer': ''}
-    search_results = []
+    search_results: list[SearchResultItem] = []
     for index, keyword in enumerate(keywords):
         keyword: str = keyword.strip()
         logger.info(f"搜索关键词： {keyword}")
         if keyword:
-            result_list = search_engine(keyword, num_result)
+            result_list = do_search(keyword, num_result)
             return_json['search_result'].append({'index': index, 'keyword': keyword, 'results': result_list})
             search_results += result_list
     unique_results = search_result_clean(search_results)
@@ -181,9 +190,10 @@ def ai_search(query: str, num_keyword: int=2, num_result: int=3):
     如果引用了搜索结果，请在引用的地方标注来源cite_index,比如[^1][^2]， 注意无需在尾部添加来源。
     用户的问题是：{query}
     网页搜索结果如下：
-    {json.dumps(unique_results, ensure_ascii=False)}
+    {json.dumps(unique_results, ensure_ascii=False, cls=CustomEncoder)}
     """
-    answer = ai_chat(final_prompt, provider=ModelProvider.SILICONFLOW)
+    print(f'final prompt is: {final_prompt}')
+    answer = ai_chat(final_prompt, provider=ModelProvider.ALIYUN)
     answer = add_reference(answer, unique_results)
     return_json['answer'] = answer
     return return_json

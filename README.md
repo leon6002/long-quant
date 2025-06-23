@@ -4,50 +4,6 @@
 
 本项目是一个用于量化分析的Python应用程序，旨在通过爬取金融数据并进行分析，帮助用户做出更明智的投资决策。
 
-## 目录结构
-
-```python
-.
-├── .gitignore
-├── LICENSE
-├── README.md
-├── requirements.txt
-├── myenv/
-├── src/
-│   ├── __init__.py
-│   ├── main.py
-│   ├── config/
-│   │   ├── __init__.py
-│   │   ├── ai.py
-│   │   ├── base.py
-│   │   └── db.py
-│   ├── core/
-│   │   ├── __init__.py
-│   │   ├── analysis.py
-│   │   └── news.py
-│   ├── crawlers/
-│   │   ├── __init__.py
-│   │   ├── eastmoney.py
-│   │   ├── tonghuashun.py
-│   │   └── js/
-│   │       └── wen.js
-│   ├── maintenance/
-│   │   └── manual.py
-│   ├── models/
-│   │   ├── __init__.py
-│   │   └── stock.py
-│   ├── services/
-│   │   ├── __init__.py
-│   │   ├── ai_service.py
-│   │   ├── news_service.py
-│   │   └── tushare.py
-│   └── utils/
-│       ├── __init__.py
-│       ├── common.py
-│       └── db_utils.py
-└── tests/
-```
-
 ## 安装指南
 
 1. 克隆本仓库：
@@ -56,11 +12,11 @@
    git clone https://github.com/yourusername/long-quant.git
    ```
 
-2. 创建虚拟环境（可选）：
+2. 创建虚拟环境：
 
    ```bash
-   python -m venv myenv
-   source myenv/bin/activate
+   python -m venv venv
+   source venv/bin/activate
    ```
 
 3. 安装依赖项：
@@ -76,6 +32,10 @@
 ```bash
 python src/main.py
 ```
+
+## windows 一键运行
+
+直接运行根目录的run.bat文件
 
 ## 配置文件
 

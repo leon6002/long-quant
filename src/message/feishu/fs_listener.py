@@ -1,5 +1,4 @@
 from datetime import datetime
-from dotenv import load_dotenv
 import lark_oapi as lark
 from lark_oapi.api.im.v1 import *
 import json

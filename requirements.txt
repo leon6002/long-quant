@@ -18,3 +18,5 @@ duckduckgo-search
 chardet
 lxml_html_clean
 lark-oapi>=1.4.8
+duckduckgo_search>=8.0.4
+ipykernel
