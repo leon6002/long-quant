@@ -1,3 +1,4 @@
+import threading
 import lark_oapi as lark
 from lark_oapi.api.im.v1 import *
 import json
@@ -6,28 +7,57 @@ from message.feishu.fs_handler import handle_command
 from message.feishu.fs_msg_format import plain_text
 from config.fs_config import APP_ID, APP_SECRET
 
-# 注册接收消息事件，处理接收到的消息。
-# Register event handler to handle received messages.
-# https://open.feishu.cn/document/uAjLw4CM/ukTMukTMukTM/reference/im-v1/message/events/receive
+
 def do_p2_im_message_receive_v1(data: P2ImMessageReceiveV1) -> None:
+    # Immediately acknowledge receipt to prevent feishu 3s timeout, which will do retry after timeout
+    threading.Thread(target=process_message_async, args=(data,)).start()
+
+
+def process_message_async(data: P2ImMessageReceiveV1) -> None:
     result = {}
     if data.event.message.message_type == "text":
-        command: str = json.loads(data.event.message.content)["text"]
-        print(f'command comes: {command}')
-        result = handle_command(command)
+        try:
+            command: str = json.loads(data.event.message.content)["text"]
+            print(f'command comes: {command}')
+            result = handle_command(command)
+        except Exception as e:
+            result = plain_text(f"解析命令失败: {str(e)}")
     else:
         result = plain_text('解析消息失败，请发送文本消息')
 
     msg_type = result['msg_type']
     content = result['content']
 
-    print(f'chat_type: {data.event.message.chat_type}')
-    print(f'message_type: {data.event.message.message_type}')
+    try:
+        if data.event.message.chat_type == "p2p":
+            p2p_req(data.event.message.chat_id, msg_type, content)
+        else:
+            reply_req(data.event.message.message_id, msg_type, content)
+    except Exception as e:
+        print(f"Error during message reply: {e}")
 
-    if data.event.message.chat_type == "p2p":
-        p2p_req(data.event.message.chat_id, msg_type, content)
-    else:
-        reply_req(data.event.message.message_id, msg_type, content)
+# 注册接收消息事件，处理接收到的消息。
+# Register event handler to handle received messages.
+# https://open.feishu.cn/document/uAjLw4CM/ukTMukTMukTM/reference/im-v1/message/events/receive
+# def do_p2_im_message_receive_v1(data: P2ImMessageReceiveV1) -> None:
+#     result = {}
+#     if data.event.message.message_type == "text":
+#         command: str = json.loads(data.event.message.content)["text"]
+#         print(f'command comes: {command}')
+#         result = handle_command(command)
+#     else:
+#         result = plain_text('解析消息失败，请发送文本消息')
+
+#     msg_type = result['msg_type']
+#     content = result['content']
+
+#     print(f'chat_type: {data.event.message.chat_type}')
+#     print(f'message_type: {data.event.message.message_type}')
+
+#     if data.event.message.chat_type == "p2p":
+#         p2p_req(data.event.message.chat_id, msg_type, content)
+#     else:
+#         reply_req(data.event.message.message_id, msg_type, content)
 
 
 # 注册事件回调
