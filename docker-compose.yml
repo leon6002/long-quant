@@ -1,0 +1,65 @@
+version: "3.8"
+
+services:
+  # 主应用服务
+  long-quant:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: long-quant-app
+    restart: unless-stopped
+    environment:
+      - PYTHONPATH=/app
+      - TZ=Asia/Shanghai
+    env_file:
+      - .env
+    volumes:
+      - ./logs:/app/logs
+      - ./data:/app/data
+    depends_on:
+      - mongodb
+    networks:
+      - long-quant-network
+    # 如果需要暴露端口，取消注释下面的行
+    # ports:
+    #   - "8000:8000"
+
+  # MongoDB数据库服务
+  mongodb:
+    image: mongo:6.0
+    container_name: long-quant-mongodb
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password123
+      MONGO_INITDB_DATABASE: long-quant
+    volumes:
+      - mongodb_data:/data/db
+      - ./mongo-init:/docker-entrypoint-initdb.d
+    ports:
+      - "27017:27017"
+    networks:
+      - long-quant-network
+
+  # Redis服务（可选，用于缓存）
+  redis:
+    image: redis:7-alpine
+    container_name: long-quant-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - long-quant-network
+
+volumes:
+  mongodb_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  long-quant-network:
+    driver: bridge
